@@ -1,0 +1,17 @@
+[metadata]
+name = 'brexelk'
+version = '0.0.1'
+description = 'Twitter scraper with regional presentation via kibana, hopefully with tweet sentiment analysis rolled in'
+author = 'Sam Martin'
+author_email = 'nivekkas@gmail.com'
+license = 'MIT'
+url = 'https://github.com/_/brexelk'
+
+[requires]
+python_version = ['3.6']
+
+[build-system]
+requires = ['setuptools', 'wheel']
+
+[tool.hatch.commands]
+prerelease = 'hatch build'
