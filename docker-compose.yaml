@@ -1,19 +1,32 @@
 ---
-version: '3.2'
+version: '2.4'
 
 services:
   logstash:
     image: "docker.elastic.co/logstash/logstash:6.4.3"
+    environment:
+      - "CONSUMER_KEY=${CONSUMER_KEY}"
+      - "CONSUMER_SECRET=${CONSUMER_SECRET}"
+      - "HASHTAG=${HASHTAG}"
+      - "OAUTH_SECRET=${OATH_SECRET}"
+      - "OAUTH_TOKEN=${OAUTH_TOKEN}"
     volumes:
-      - containers/logstash/twitter.conf:/usr/share/logstash/pipeline/twitter.conf
+      - ./containers/logstash/twitter.conf:/usr/share/logstash/pipeline/twitter.conf
+    depends_on:
+      - elasticsearch
 
   elasticsearch:
     image: "docker.elastic.co/elasticsearch/elasticsearch:6.4.3"
     environment:
       - "discovery.type=single-node"
+    mem_limit: 2G
+    memswap_limit: 0
+    mem_reservation: 2G
 
   kibana:
     image: "docker.elastic.co/kibana/kibana:6.4.3"
     ports:
       - 5601:5601
+    depends_on:
+      - elasticsearch
 
