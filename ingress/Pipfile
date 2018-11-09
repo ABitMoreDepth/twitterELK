@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tweepy = "*"
+ingress = {editable = true, path = "."}
+
+[dev-packages]
+pylint = "*"
+pytest = "*"
+ipython = "*"
+
+[requires]
+python_version = "3.6"

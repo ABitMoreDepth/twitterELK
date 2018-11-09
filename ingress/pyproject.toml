@@ -1,0 +1,17 @@
+[metadata]
+name = 'ingress'
+version = '0.0.1'
+description = 'Python Tweepy based twitter ingress tool'
+author = 'Sam Martin'
+author_email = 'nivekkas@gmail.com'
+license = 'MIT'
+url = 'https://github.com/_/ingress'
+
+[requires]
+python_version = ['2.7', '3.5', '3.6', 'pypy', 'pypy3']
+
+[build-system]
+requires = ['setuptools', 'wheel']
+
+[tool.hatch.commands]
+prerelease = 'hatch build'
