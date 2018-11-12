@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 tweepy = "*"
 ingress = {editable = true, path = "."}
+carmen = "*"
 
 [dev-packages]
 pylint = "*"
