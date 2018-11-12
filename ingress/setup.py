@@ -31,6 +31,12 @@ setup(
         '',
     ],
 
+    entry_points = {
+        'console_scripts': [
+            'ingress = ingress.main:main'
+        ]
+    },
+
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
