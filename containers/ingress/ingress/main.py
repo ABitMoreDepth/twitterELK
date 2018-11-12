@@ -3,6 +3,7 @@ Contains the primary entrypoint and exit handling code for the Twitter Ingress t
 """
 
 import logging
+import sys
 
 from os.path import join, dirname
 
@@ -21,7 +22,7 @@ def main():
     """
 
     LOG.debug('Loading twitter authentication confifg')
-    with open(join(dirname(__file__), '../../.env'), 'r') as env:
+    with open(join(dirname(__file__), '../../../.env'), 'r') as env:
         content = env.readlines()
         env_vars = {
             key: value
@@ -40,9 +41,18 @@ def main():
     LOG.debug('Creating Stream instance')
     api = tweepy.Stream(auth=auth, listener=StdOutListener())
 
-    tweet_filters = ['#brexit', '#remain', '#leave']
+    if 'HASHTAGS' in env_vars:
+        tweet_filters = env_vars['HASHTAGS'].split(',')
+    else:
+        tweet_filters = ['#brexit', '#remain', '#leave']
     LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
-    api.filter(track=tweet_filters)
+
+    try:
+        api.filter(track=tweet_filters)
+    except KeyboardInterrupt:
+        LOG.info('Caught Ctrl+C, Shutting down.')
+        api.disconnect()
+        sys.exit(0)
 
 
 if __name__ == '__main__':
