@@ -1,38 +1,31 @@
-import json
-import sys
+"""
+Contains the primary entrypoint and exit handling code for the Twitter Ingress tooling.
+"""
+
+import logging
+
+from os.path import join, dirname
 
 import tweepy
 
+from ingress.listeners import StdOutListener
 
-class StdOutListener(tweepy.StreamListener):
-    total_tweets = []
-
-    def on_data(self, data):
-        tweet = json.loads(data)
-
-        StdOutListener.total_tweets.append(tweet)
-        if len(StdOutListener.total_tweets) > 9:
-            with open('sample.json', 'w') as output_fd:
-                json.dump(StdOutListener.total_tweets, output_fd)
-
-            sys.exit(0)
-        #  if tweet.get('coordinates', None) is not None:
-        #      print('\n\nFound a geotagged tweet!')
-        #      print(tweet)
-        #      print('Coordinates: ({})'.format(tweet['coordinates']))
-
-        return True
-
-    def on_exception(self, exception=None):
-
-        print(exception)
+LOG = logging.getLogger(__name__)
 
 
 def main():
-    with open('.env', 'r') as env:
+    """
+    Primary entrypoint to the Twitter Ingress tool.  Sets up access to twitter
+    based on secrets stored locally on the filesystem and connects to twitter
+    to start consuming tweets.
+    """
+
+    LOG.debug('Loading twitter authentication confifg')
+    with open(join(dirname(__file__), '../../.env'), 'r') as env:
         content = env.readlines()
         env_vars = {
-            key: value for key,
+            key: value
+            for key,
             value in [tuple(line.strip().split('=')) for line in content]
         }
 
@@ -41,14 +34,15 @@ def main():
     #  OAUTH_TOKEN'
     #  OATH_SECRET'
 
-    auth = tweepy.OAuthHandler(
-        env_vars['CONSUMER_KEY'], env_vars['CONSUMER_SECRET']
-    )
+    auth = tweepy.OAuthHandler(env_vars['CONSUMER_KEY'], env_vars['CONSUMER_SECRET'])
     auth.set_access_token(env_vars['OAUTH_TOKEN'], env_vars['OAUTH_SECRET'])
 
+    LOG.debug('Creating Stream instance')
     api = tweepy.Stream(auth=auth, listener=StdOutListener())
 
-    api.filter(track=['brexit'])
+    tweet_filters = ['#brexit', '#remain', '#leave']
+    LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
+    api.filter(track=tweet_filters)
 
 
 if __name__ == '__main__':
