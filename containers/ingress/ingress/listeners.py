@@ -6,6 +6,7 @@ import json
 import logging
 
 import tweepy
+from carmen.location import LocationEncoder
 
 from ingress.geocode import get_geotagger
 
@@ -21,6 +22,7 @@ class StdOutListener(tweepy.StreamListener):
     def __init__(self, *args, **kwargs):
         self.geotagger = get_geotagger()
         self.tweets = []
+        self.location_resolver = LocationEncoder()
 
         super().__init__(*args, **kwargs)
 
@@ -40,9 +42,9 @@ class StdOutListener(tweepy.StreamListener):
                 '\n########################\n'
                 'Identified Tweet location: %s'
                 '\n########################',
-                tweet_location
+                tweet_location[1]
             )
-            tweet['location'] = repr(tweet_location)
+            tweet['location'] = self.location_resolver.default(tweet_location[1])
 
         self.tweets.append(tweet)
 
