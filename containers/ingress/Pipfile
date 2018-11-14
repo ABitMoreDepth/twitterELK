@@ -9,6 +9,7 @@ ingress = {editable = true, path = "."}
 carmen = "*"
 arrow = "*"
 elasticsearch-dsl = "*"
+better-exceptions = "*"
 
 [dev-packages]
 pylint = "*"
