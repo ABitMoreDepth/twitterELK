@@ -9,10 +9,14 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
+    GeoPoint,
+    Index,
     InnerDoc,
-    Nested,
+    Keyword,
+    Object,
     Text,
 )
+from elasticsearch_dsl.connections import connections
 from elasticsearch_dsl.document import DocumentMeta
 
 from ingress.exceptions import InvalidMappingError
@@ -53,14 +57,75 @@ class Location(InnerDoc):
         'longitude': 'location/longitude',
         'resolution_method': 'location/resolution_method'
     }
-    country = Text()
-    state = Text()
-    county = Text()
-    city = Text()
+    country = Keyword(doc_values=True)
+    state = Keyword(doc_values=True)
+    county = Keyword(doc_values=True)
+    city = Keyword(doc_values=True)
     id = Text()
     latitude = Text()
     longitude = Text()
     resolution_method = Text()
+
+class Place(InnerDoc):
+    """
+    InnerDoc mapping of Twitter Place information embedded within a tweet.
+
+    Sample data:
+    "place": {
+        "id": "44cfc67a4237cb80",
+        "url": "https://api.twitter.com/1.1/geo/id/44cfc67a4237cb80.json",
+        "place_type": "city",
+        "name": "Catshill",
+        "full_name": "Catshill, England",
+        "country_code": "GB",
+        "country": "United Kingdom",
+        "bounding_box": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -2.069936,
+                        52.355344
+                    ],
+                    [
+                        -2.069936,
+                        52.372085
+                    ],
+                    [
+                        -2.034409,
+                        52.372085
+                    ],
+                    [
+                        -2.034409,
+                        52.355344
+                    ]
+                ]
+            ]
+        },
+        "attributes": {}
+      }
+    """
+    ingress_mapping = {
+        'id': 'place/id',
+        'url': 'place/url',
+        'place_type': 'place/place_type',
+        'name': 'place/name',
+        'full_name': 'place/full_name',
+        'country_code': 'place/country_code',
+        'country': 'place/country',
+        'bounding_box': 'place/bounding_box',
+        'attributes': 'place/attributes'
+    }
+
+    id = Text()
+    url = Text()
+    place_type = Text()
+    name = Text()
+    full_name = Text()
+    country_code = Text()
+    country = Text()
+    bounding_box = Object(dynamic=True)
+    attributes = Object(dynamic=True)
 
 
 class Tweet(Document):
@@ -74,18 +139,19 @@ class Tweet(Document):
             'created_at',
         'text':
             'text',
-        'truncated':
-            'truncated',
+        #  'truncated':
+        #      'truncated',
         'user':
             User,
         'geo':
             'geo',
+        'geotagged': 'geotagged',
         'coordinates':
             'coordinates',
         'place':
-            'place',
-        'full_text':
-            'extended_tweet/full_text',
+            Place,
+        #  'full_text':
+        #      'extended_tweet/full_text',
         'hashtags':
             (
                 lambda tag_list: [tag.get('text') for tag in tag_list],
@@ -93,7 +159,7 @@ class Tweet(Document):
             ),
         'lang':
             'lang',
-        'timestamp_ms': (
+        'timestamp': (
             lambda x: arrow.get(int(x) / 1000).datetime,
             'timestamp_ms',
         ),
@@ -104,15 +170,22 @@ class Tweet(Document):
     created_at = Text()
     text = Text()
     truncated = Boolean()
-    user = Nested(User)
-    geo = Text()
-    coordinates = Text()
-    place = Text()
+    user = Object(User)
+    geo = Object(dynamic=True)
+    geotagged = Boolean()
+    coordinates = GeoPoint()
+    place = Object(Place)
     full_text = Text()
     hashtags = Text(multi=True)
-    lang = Text()
+    lang = Keyword(doc_values=True)
     timestamp = Date()
-    location = Nested(Location)
+    location = Object(Location)
+
+    class Index:
+        name = 'tweets'
+        settings = {
+            'number_of_shards': 2
+        }
 
 
 def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingress_mapping):
@@ -163,9 +236,7 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
             if isinstance(value, tuple):
                 func, value = value
 
-            LOG.debug(value)
-            #  import ipdb
-            #  ipdb.set_trace()
+            #  LOG.debug(value)
             if isinstance(value, DocumentMeta):
                 # Nested doc in ingress mapping
                 LOG.debug('Recursing to parse nested document: %s', value)
@@ -188,16 +259,28 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
             data_item = tweet
             for segment in data_path:
                 data_item = data_item.get(segment, None)
-                if data_item is None:
+                if data_item is None or data_item == 'null':
                     break
 
-            if func is not None:
+            if func is not None and data_item is not None:
                 data_item = func(data_item)
 
             setattr(tweet_doc, key, data_item)
 
+        LOG.debug('Parsed tweet: %s', tweet_doc.to_dict())
         return tweet_doc
 
     except AttributeError as exception:
         LOG.error(exception, exc_info=True)
         raise InvalidMappingError from exception
+
+
+def setup_mappings(es_host='elasticsearch'):
+    """
+    Small routing to run through the initial setup of the elastic mappings.
+    """
+    connections.create_connection(hosts=[es_host])
+
+    tweet_index = Index('tweets')
+    if not tweet_index.exists():
+        Tweet.init()

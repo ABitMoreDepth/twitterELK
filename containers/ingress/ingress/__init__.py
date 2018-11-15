@@ -1,8 +1,11 @@
-""" Initial setup for the ingress package.  Includes base logging setup
+""" Initial setup for the ingress package.  Includes base logging setup and
+Elasticsearch connection establishment.
 """
 
 import logging
 from os import getenv
+
+from ingress.elastic import setup_mappings
 
 __version__ = '0.0.1'
 
@@ -43,4 +46,5 @@ def config_logging(level='INFO'):
         log.error('User attempted to set an invalid log level, defaulting to INFO')
 
 
-config_logging(getenv("LOGLEVEL", "INFO"))
+config_logging(getenv("LOG_LEVEL", "INFO"))
+setup_mappings(getenv("ES_HOST", "elasticsearch"))

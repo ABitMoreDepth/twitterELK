@@ -9,7 +9,8 @@ from os.path import join, dirname
 
 import tweepy
 
-from ingress.listeners import StdOutListener
+#  from ingress.listeners import StdOutListener
+from ingress.listeners import ESListener
 
 LOG = logging.getLogger(__name__)
 
@@ -39,7 +40,8 @@ def main():
     auth.set_access_token(env_vars['OAUTH_TOKEN'], env_vars['OAUTH_SECRET'])
 
     LOG.debug('Creating Stream instance')
-    api = tweepy.Stream(auth=auth, listener=StdOutListener())
+    #  api = tweepy.Stream(auth=auth, listener=StdOutListener())
+    api = tweepy.Stream(auth=auth, listener=ESListener())
 
     if 'HASHTAGS' in env_vars:
         tweet_filters = env_vars['HASHTAGS'].split(',')
