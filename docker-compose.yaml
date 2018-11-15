@@ -19,6 +19,8 @@ services:
     image: "docker.elastic.co/elasticsearch/elasticsearch:6.4.3"
     environment:
       - "discovery.type=single-node"
+    ports:
+      - 9200:9200
     mem_limit: 2G
     memswap_limit: 0
     mem_reservation: 2G
