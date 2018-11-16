@@ -11,7 +11,7 @@ with open('ingress/__init__.py', 'r') as f:
         version = '0.0.1'
 
 with open('README.rst', 'r', encoding='utf-8') as f:
-    readme = f.read()
+    README = f.read()
 
 REQUIRES = []
 
@@ -19,24 +19,19 @@ setup(
     name='ingress',
     version=version,
     description='',
-    long_description=readme,
+    long_description=README,
     author='Sam Martin',
     author_email='nivekkas@gmail.com',
     maintainer='Sam Martin',
     maintainer_email='nivekkas@gmail.com',
     url='https://github.com/_/ingress',
     license='MIT',
-
     keywords=[
         '',
     ],
-
-    entry_points = {
-        'console_scripts': [
-            'ingress = ingress.main:main'
-        ]
+    entry_points={
+        'console_scripts': ['ingress = ingress.main:main'],
     },
-
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -46,9 +41,10 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
-
     install_requires=REQUIRES,
-    tests_require=['coverage', 'pytest'],
-
+    tests_require=[
+        'coverage',
+        'pytest',
+    ],
     packages=find_packages(),
 )

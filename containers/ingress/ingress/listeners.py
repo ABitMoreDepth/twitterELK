@@ -121,7 +121,6 @@ class ESListener(tweepy.StreamListener):
 
         tweet_location = self.geotagger.resolve_tweet(tweet)
 
-
         tweet['geotagged'] = False
         if tweet_location:
             LOG.debug('  This tweet includes location information')
@@ -134,7 +133,6 @@ class ESListener(tweepy.StreamListener):
                 }
                 tweet['geotagged'] = True
 
-
         try:
             #  LOG.debug('tweet: %s', json.dumps(tweet, indent=2))
             tweet_doc = map_tweet_to_mapping(tweet)
@@ -142,9 +140,18 @@ class ESListener(tweepy.StreamListener):
             LOG.debug('Tweet saved to ES')
         except (InvalidMappingError, RequestError) as error:
             LOG.error('Failed to ingest tweet: %s', error, exc_info=True)
-            # TODO: Explain the below structure!!
             # error.info looks like this:
-            #  {'error': {'root_cause': [{'type': 'mapper_parsing_exception', 'reason': 'failed to parse [coordinates]'}],
+            #  {
+            #     'error':
+            #         {
+            #             'root_cause':
+            #                 [
+            #                     {
+            #                         'type': 'mapper_parsing_exception',
+            #                         'reason': 'failed to parse [coordinates]'
+            #                     }
+            #                 ],
+            # ...
             error_cause = error.info['error']['root_cause'][0]['reason']
             broken_segment = re.search(r'.+\[(.+)\]', error_cause)
             if broken_segment.groups:

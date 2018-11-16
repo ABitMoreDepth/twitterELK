@@ -1,11 +1,15 @@
 """
 This module contains wrapper code around the carmen tweet geolocation library.
 
-The Carmen library takes JSONified tweet objects (like those returned by tweepy) and will attempt to derive either a precise location, or a location string (i.e. London, United Kingdom etc.).
+The Carmen library takes JSONified tweet objects (like those returned by
+tweepy) and will attempt to derive either a precise location, or a location
+string (i.e. London, United Kingdom etc.).
 
-This is the first step in getting hold of coordinates for a tweet that correspond to approximately where the tweet originates.
+This is the first step in getting hold of coordinates for a tweet that
+correspond to approximately where the tweet originates.
 
-The final step will be to geocode the location information returned from this module.
+The final step will be to geocode the location information returned from this
+module.
 """
 
 from carmen import get_resolver

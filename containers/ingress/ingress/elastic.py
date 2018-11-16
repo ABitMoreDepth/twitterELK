@@ -66,6 +66,7 @@ class Location(InnerDoc):
     longitude = Text()
     resolution_method = Text()
 
+
 class Place(InnerDoc):
     """
     InnerDoc mapping of Twitter Place information embedded within a tweet.
@@ -133,38 +134,25 @@ class Tweet(Document):
     Elasticsearch Document mapping to store tweets.
     """
     ingress_mapping = {
-        'id':
-            'id_str',
-        'created_at':
-            'created_at',
-        'text':
-            'text',
-        #  'truncated':
-        #      'truncated',
-        'user':
-            User,
-        'geo':
-            'geo',
+        'coordinates': 'coordinates',
+        'created_at': 'created_at',
+        'geo': 'geo',
         'geotagged': 'geotagged',
-        'coordinates':
-            'coordinates',
-        'place':
-            Place,
-        #  'full_text':
-        #      'extended_tweet/full_text',
         'hashtags':
             (
                 lambda tag_list: [tag.get('text') for tag in tag_list],
                 'extended_tweet/entities/hashtags',
             ),
-        'lang':
-            'lang',
+        'id': 'id_str',
+        'place': Place,
+        'text': 'text',
+        'user': User,
+        'lang': 'lang',
+        'location': Location,
         'timestamp': (
             lambda x: arrow.get(int(x) / 1000).datetime,
             'timestamp_ms',
         ),
-        'location':
-            Location
     }
     id = Text()
     created_at = Text()
@@ -181,11 +169,10 @@ class Tweet(Document):
     timestamp = Date()
     location = Object(Location)
 
-    class Index:
+    class Index:  # pylint: disable=too-few-public-methods
+        """Simple class used to define the index settings for the mapping."""
         name = 'tweets'
-        settings = {
-            'number_of_shards': 2
-        }
+        settings = {'number_of_shards': 1}
 
 
 def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingress_mapping):
@@ -228,7 +215,6 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
     # Initialise a new Tweet document if one hasn't been passed in.
     if tweet_doc is None:
         tweet_doc = Tweet()
-
 
     try:
         for key, value in ingress_mapping.items():

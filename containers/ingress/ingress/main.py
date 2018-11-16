@@ -5,7 +5,6 @@ Contains the primary entrypoint and exit handling code for the Twitter Ingress t
 import logging
 import sys
 
-from os.path import join, dirname
 from os import environ
 
 import tweepy
