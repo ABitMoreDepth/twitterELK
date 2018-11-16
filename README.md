@@ -29,8 +29,8 @@ An example of such a file that you can use as a template looks like this:
 ```
 CONSUMER_KEY=123abc
 CONSUMER_SECRET=123abc
-OAUTH_TOKEN=123abc
-OATH_SECRET=123abc
+OAUTH_KEY=123abc
+OAUTH_SECRET=123abc
 HASHTAGS=hashtag1,hashtag2,hashtag3
 ```
 
@@ -38,7 +38,7 @@ The file should be save in the repo root as `.env`.
 
 Please note that you will need to retrieve the `CONSUMER_KEY` and token, along with the `OATH_TOKEN` and secret by registering a developer account on twitter and using that account to create an app.  After the various data scandals and spurious bot usage etc. apparently twitter will now manually vet applications for a developer account, so if you want to test this, it may be with getting in touch with Sam Martin to borrow his credentials, or just view the system running from his machine.
 
-Bringing up the project once you have configured the env file is straightforward: `docker-compose up -d` will pull in the ELK images and launch the containers.  You can follow the logs for the Kibana container to check when the container has spun up its web interface, at which point it will be available at http://localhost:5601.
+Bringing up the project once you have configured the env file is straightforward: `docker-compose up -d` will pull in the Elasticsearch & Kibana images, build the ingress image and launch the containers.  You can follow the logs for the Kibana container to check when the container has spun up its web interface, at which point it will be available at http://localhost:5601.
 
 ## Importing Kibana Visualisations and Dashboard ##
 Until we have automated the deployment of the kibana dashboard, the user will either need to step through and create their own visualisations on system start up.  But for brevity the user can also import the `kibana_dashboard.json` file in order to load in a set of visualisations which should work out of the gate.

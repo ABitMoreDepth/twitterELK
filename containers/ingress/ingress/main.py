@@ -6,6 +6,7 @@ import logging
 import sys
 
 from os.path import join, dirname
+from os import environ
 
 import tweepy
 
@@ -23,28 +24,34 @@ def main():
     """
 
     LOG.debug('Loading twitter authentication confifg')
-    with open(join(dirname(__file__), '../../../.env'), 'r') as env:
-        content = env.readlines()
-        env_vars = {
-            key: value
-            for key,
-            value in [tuple(line.strip().split('=')) for line in content]
-        }
+    consumer_key = environ['CONSUMER_KEY']
+    consumer_secret = environ['CONSUMER_SECRET']
+    oauth_key = environ['OAUTH_KEY']
+    oauth_secret = environ['OAUTH_SECRET']
 
+    #  with open(join(dirname(__file__), '../../../.env'), 'r') as env:
+    #      content = env.readlines()
+    #      env_vars = {
+    #          key: value
+    #          for key,
+    #          value in [tuple(line.strip().split('=')) for line in content]
+    #      }
     #  CONSUMER_KEY'
     #  CONSUMER_SECRET'
     #  OAUTH_TOKEN'
     #  OATH_SECRET'
 
-    auth = tweepy.OAuthHandler(env_vars['CONSUMER_KEY'], env_vars['CONSUMER_SECRET'])
-    auth.set_access_token(env_vars['OAUTH_TOKEN'], env_vars['OAUTH_SECRET'])
+    #  auth = tweepy.OAuthHandler(env_vars['CONSUMER_KEY'], env_vars['CONSUMER_SECRET'])
+    #  auth.set_access_token(env_vars['OAUTH_TOKEN'], env_vars['OAUTH_SECRET'])
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(oauth_key, oauth_secret)
 
     LOG.debug('Creating Stream instance')
     #  api = tweepy.Stream(auth=auth, listener=StdOutListener())
     api = tweepy.Stream(auth=auth, listener=ESListener())
 
-    if 'HASHTAGS' in env_vars:
-        tweet_filters = env_vars['HASHTAGS'].split(',')
+    if 'HASHTAGS' in environ:
+        tweet_filters = environ['HASHTAGS'].split(',')
     else:
         tweet_filters = ['#brexit', '#remain', '#leave']
     LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
