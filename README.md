@@ -40,4 +40,5 @@ Please note that you will need to retrieve the `CONSUMER_KEY` and token, along w
 
 Bringing up the project once you have configured the env file is straightforward: `docker-compose up -d` will pull in the ELK images and launch the containers.  You can follow the logs for the Kibana container to check when the container has spun up its web interface, at which point it will be available at http://localhost:5601.
 
-
+## Importing Kibana Visualisations and Dashboard ##
+Until we have automated the deployment of the kibana dashboard, the user will either need to step through and create their own visualisations on system start up.  But for brevity the user can also import the `kibana_dashboard.json` file in order to load in a set of visualisations which should work out of the gate.
