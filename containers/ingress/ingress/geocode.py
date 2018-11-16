@@ -8,14 +8,15 @@ This is the first step in getting hold of coordinates for a tweet that correspon
 The final step will be to geocode the location information returned from this module.
 """
 
-import carmen
+from carmen import get_resolver
+
 
 def get_geotagger():
     """
     Simple factory function to instantiate a carmen resolver instance.
     """
-    geotagger = carmen.get_resolver()
+    resolver_options = {'place': {'allow_unknown_locations': True}}
+    geotagger = get_resolver(options=resolver_options)
     geotagger.load_locations()
 
     return geotagger
-
