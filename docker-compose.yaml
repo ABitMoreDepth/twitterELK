@@ -17,6 +17,7 @@ services:
       context: containers/ingress
       dockerfile: Dockerfile
     environment:
+      - "ES_HOST=elasticsearch"
       - "CONSUMER_KEY=${CONSUMER_KEY}"
       - "CONSUMER_SECRET=${CONSUMER_SECRET}"
       - "HASHTAGS=${HASHTAGS}"
