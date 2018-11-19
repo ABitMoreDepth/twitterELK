@@ -47,4 +47,4 @@ def config_logging(level='INFO'):
 
 
 config_logging(getenv("LOG_LEVEL", "INFO"))
-setup_mappings(getenv("ES_HOST", "elasticsearch"))
+setup_mappings(getenv("ES_HOST"))

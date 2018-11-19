@@ -261,10 +261,14 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
         raise InvalidMappingError from exception
 
 
-def setup_mappings(es_host='elasticsearch'):
+def setup_mappings(es_host=None):
     """
     Small routing to run through the initial setup of the elastic mappings.
     """
+    if es_host is None:
+        LOG.warning('No Elasticsearch connection setup')
+        return
+
     connections.create_connection(hosts=[es_host])
 
     tweet_index = Index('tweets')

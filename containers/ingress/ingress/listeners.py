@@ -156,7 +156,7 @@ class ESListener(tweepy.StreamListener):
             broken_segment = re.search(r'.+\[(.+)\]', error_cause)
             if broken_segment.groups:
                 broken_segment = broken_segment.group(1)
-                LOG.error('Failing segment: %s', json.dumps(tweet[broken_segment], indent=4))
+                LOG.error('Failing segment: %s', json.dumps(tweet_doc[broken_segment], indent=4))
 
             return False
 
