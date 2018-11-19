@@ -10,6 +10,7 @@ carmen = "*"
 arrow = "*"
 elasticsearch-dsl = "*"
 better-exceptions = "*"
+textblob = "*"
 
 [dev-packages]
 pylint = "*"
