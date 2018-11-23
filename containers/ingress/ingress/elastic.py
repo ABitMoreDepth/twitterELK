@@ -137,11 +137,14 @@ class Tweet(Document):
         'coordinates': 'coordinates',
         'created_at': 'created_at',
         'geo': 'geo',
-        'geotagged': 'geotagged',
+        'geotagged': (
+            lambda geo_tag: False if geo_tag is None else geo_tag,
+            'geotagged',
+        ),
         'hashtags':
             (
                 lambda tag_list: [tag.get('text') for tag in tag_list],
-                'extended_tweet/entities/hashtags',
+                'entities/hashtags',
             ),
         'id': 'id_str',
         'place': Place,
@@ -177,7 +180,7 @@ class Tweet(Document):
 
 def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingress_mapping):
     """
-    Routine which will attempt to parse a tweet object and return an ES Tweet
+    Attempt to parse a tweet object and return an ES Tweet
     Document, which can be saved to the database.
 
     This function uses the ingress_mapping variable to dynamically process a
@@ -263,7 +266,7 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
 
 def setup_mappings(es_host=None):
     """
-    Small routing to run through the initial setup of the elastic mappings.
+    Run through the initial setup of the elasticsearch index used to store tweets.
     """
     if es_host is None:
         LOG.warning('No Elasticsearch connection setup')

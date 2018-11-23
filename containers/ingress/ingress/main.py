@@ -5,14 +5,29 @@ Contains the primary entrypoint and exit handling code for the Twitter Ingress t
 import logging
 import sys
 
+#  from concurrent.futures import ThreadPoolExecutor
 from os import environ
 
 import tweepy
 
 #  from ingress.listeners import StdOutListener
-from ingress.listeners import ESListener
+#  from ingress.listeners import ESListener
+from ingress.structures import get_api_instance, get_processor_instance
+from ingress.listeners import QueueListener
+
+#  from ingress.data_processing.processing import DataProcessor
+from ingress.data_processing.processing import PluginBase
 
 LOG = logging.getLogger(__name__)
+
+
+def shutdown(exit_code=0):
+    """
+    Safely close down the ingress application.
+
+    :param exit_code: raise a system exit with the provided exit code.  Defaults to 0.
+    """
+    pass
 
 
 def main():
@@ -28,26 +43,11 @@ def main():
     oauth_key = environ['OAUTH_KEY']
     oauth_secret = environ['OAUTH_SECRET']
 
-    #  with open(join(dirname(__file__), '../../../.env'), 'r') as env:
-    #      content = env.readlines()
-    #      env_vars = {
-    #          key: value
-    #          for key,
-    #          value in [tuple(line.strip().split('=')) for line in content]
-    #      }
-    #  CONSUMER_KEY'
-    #  CONSUMER_SECRET'
-    #  OAUTH_TOKEN'
-    #  OATH_SECRET'
-
-    #  auth = tweepy.OAuthHandler(env_vars['CONSUMER_KEY'], env_vars['CONSUMER_SECRET'])
-    #  auth.set_access_token(env_vars['OAUTH_TOKEN'], env_vars['OAUTH_SECRET'])
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(oauth_key, oauth_secret)
 
     LOG.debug('Creating Stream instance')
-    #  api = tweepy.Stream(auth=auth, listener=StdOutListener())
-    api = tweepy.Stream(auth=auth, listener=ESListener())
+    api = get_api_instance('api', auth=auth, listener=QueueListener())
 
     if 'HASHTAGS' in environ:
         tweet_filters = environ['HASHTAGS'].split(',')
@@ -55,11 +55,17 @@ def main():
         tweet_filters = ['#brexit', '#remain', '#leave']
     LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
 
+    PluginBase.import_subclasses()
+    data_processor = get_processor_instance('data_processor')
+
     try:
-        api.filter(track=tweet_filters)
+        api.filter(track=tweet_filters, async=True)
+        data_processor.start()
+
     except KeyboardInterrupt:
         LOG.info('Caught Ctrl+C, Shutting down.')
         api.disconnect()
+        data_processor.stop()
         sys.exit(0)
 
 
