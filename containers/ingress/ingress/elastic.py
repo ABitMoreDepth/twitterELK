@@ -9,9 +9,11 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
+    Float,
     GeoPoint,
     Index,
     InnerDoc,
+    Integer,
     Keyword,
     Object,
     Text,
@@ -151,7 +153,10 @@ class Tweet(Document):
         'text': 'text',
         'user': User,
         'lang': 'lang',
+        'length': 'tweet_length',
         'location': Location,
+        'sentiment_polarity': 'sentiment_polarity',
+        'sentiment_subjectivity': 'sentiment_subjectivity',
         'timestamp': (
             lambda x: arrow.get(int(x) / 1000).datetime,
             'timestamp_ms',
@@ -160,6 +165,7 @@ class Tweet(Document):
     id = Text()
     created_at = Text()
     text = Text()
+    length = Integer()
     truncated = Boolean()
     user = Object(User)
     geo = Object(dynamic=True)
@@ -171,6 +177,8 @@ class Tweet(Document):
     lang = Keyword(doc_values=True)
     timestamp = Date()
     location = Object(Location)
+    sentiment_polarity = Float()  # tweet_json['sentiment_polarity'],
+    sentiment_subjectivity = Float()  # tweet_json['sentiment_subjectivity']
 
     class Index:  # pylint: disable=too-few-public-methods
         """Simple class used to define the index settings for the mapping."""

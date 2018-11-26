@@ -24,7 +24,7 @@ services:
       - "OAUTH_KEY=${OAUTH_KEY}"
       - "OAUTH_SECRET=${OAUTH_SECRET}"
 
-      - "LOG_LEVEL=${LOG_LEVEL:-DEBUG}"
+      - "LOG_LEVEL=${LOG_LEVEL:-INFO}"
     depends_on:
       - elasticsearch
 
