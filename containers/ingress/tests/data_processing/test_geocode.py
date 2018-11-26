@@ -12,9 +12,11 @@ from tests.tweets import TWEET_PARSE_SAMPLES
 @pytest.mark.parametrize(
     'input_tweet,is_geotagged,expected_coordinates',
     [
-        (raw_tweet,
-         tweet_doc.geotagged,
-         tweet_doc.coordinates) for raw_tweet,
+        (
+            raw_tweet,
+            tweet_doc.geotagged,
+            tweet_doc.coordinates,
+        ) for raw_tweet,
         tweet_doc in TWEET_PARSE_SAMPLES
     ]
 )
