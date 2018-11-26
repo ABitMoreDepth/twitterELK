@@ -11,6 +11,8 @@ services:
     mem_limit: 2G
     memswap_limit: 0
     mem_reservation: 2G
+    volumes:
+      - "es_data:/usr/share/elasticsearch/data"
 
   ingress:
     build:
@@ -34,3 +36,6 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
+
+volumes:
+  es_data:
