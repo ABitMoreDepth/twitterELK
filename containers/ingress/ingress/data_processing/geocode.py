@@ -18,7 +18,6 @@ from carmen.location import LocationEncoder
 
 from ingress.data_processing.processing import PluginBase
 
-
 LOG = logging.getLogger(__name__)
 
 
@@ -54,7 +53,7 @@ class GeoCoding(PluginBase):
             LOG.debug('  This tweet includes location information')
             tweet_json['location'] = self.location_resolver.default(tweet_location[1])
 
-            if 'latitude' in tweet_json['location']:
+            if 'latitude' in tweet_json['location'] and 'longitude' in tweet_json['location']:
                 tweet_json['coordinates'] = {
                     'lat': tweet_json['location']['latitude'],
                     'lon': tweet_json['location']['longitude'],

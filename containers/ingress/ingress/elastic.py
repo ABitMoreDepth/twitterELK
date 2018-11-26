@@ -143,11 +143,10 @@ class Tweet(Document):
             lambda geo_tag: False if geo_tag is None else geo_tag,
             'geotagged',
         ),
-        'hashtags':
-            (
-                lambda tag_list: [tag.get('text') for tag in tag_list],
-                'entities/hashtags',
-            ),
+        'hashtags': (
+            lambda tag_list: [tag.get('text') for tag in tag_list],
+            'entities/hashtags',
+        ),
         'id': 'id_str',
         'place': Place,
         'text': 'text',
@@ -179,11 +178,6 @@ class Tweet(Document):
     location = Object(Location)
     sentiment_polarity = Float()  # tweet_json['sentiment_polarity'],
     sentiment_subjectivity = Float()  # tweet_json['sentiment_subjectivity']
-
-    class Index:  # pylint: disable=too-few-public-methods
-        """Simple class used to define the index settings for the mapping."""
-        name = 'tweets'
-        settings = {'number_of_shards': 1}
 
 
 def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingress_mapping):
@@ -272,7 +266,7 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
         raise InvalidMappingError from exception
 
 
-def setup_mappings(es_host=None):
+def setup_mappings(es_host: str = None, index_suffix: str = ''):
     """
     Run through the initial setup of the elasticsearch index used to store tweets.
     """
@@ -282,6 +276,13 @@ def setup_mappings(es_host=None):
 
     connections.create_connection(hosts=[es_host])
 
-    tweet_index = Index('tweets')
+    tweet_index = Index('tweets-{}'.format(index_suffix))
+    tweet_index.settings(
+        number_of_shards=1,
+        number_of_replicas=0,
+    )
+    tweet_index.document(Tweet)
+    LOG.info('Checking if Index %s exists and creating if not', tweet_index._name)
     if not tweet_index.exists():
-        Tweet.init()
+        LOG.info('Creating new index.')
+        tweet_index.create()

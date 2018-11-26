@@ -41,6 +41,9 @@ class SentimentAnalysis(PluginBase):
             sentence_data = tweet_json.get('text')
 
         LOG.debug('Analysing the following sentence for sentiment: %s', sentence_data)
+        if not sentence_data:
+            return tweet_json
+
         blob = TextBlob(sentence_data)
 
         tweet_json['sentiment_polarity'] = blob.sentiment.polarity

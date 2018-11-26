@@ -3,35 +3,17 @@ Container module which provides various data structures and globally useful syst
 """
 import weakref
 
-import tweepy
 
-from ingress.data_processing.processing import DataProcessor
-
-_API_CACHE = weakref.WeakValueDictionary()
-_PROCESSOR_CACHE = weakref.WeakValueDictionary()
+_SINGLETON_CACHE = weakref.WeakValueDictionary()
 
 
-def get_api_instance(name, *args, **kwargs):
+def get_singleton_instance(obj_type, *args, **kwargs):
     """ Factory that produces a cached Tweepy Stream instance.
     """
-    if name not in _API_CACHE:
-        api = tweepy.Stream(*args, **kwargs)
-        _API_CACHE[name] = api
+    if obj_type not in _SINGLETON_CACHE:
+        object_instance = obj_type(*args, **kwargs)
+        _SINGLETON_CACHE[obj_type] = object_instance
     else:
-        api = _API_CACHE[name]
+        object_instance = _SINGLETON_CACHE[obj_type]
 
-    return api
-
-
-def get_processor_instance(name, *args, **kwargs):
-    """ Factory that produces a cached DataProcessor instance.
-    """
-    if name not in _API_CACHE:
-        processor = DataProcessor(*args, **kwargs)
-        _PROCESSOR_CACHE[name] = processor
-    else:
-        processor = _PROCESSOR_CACHE[name]
-
-    return processor
-
-
+    return object_instance

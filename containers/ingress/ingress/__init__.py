@@ -5,9 +5,7 @@ Elasticsearch connection establishment.
 import logging
 from os import getenv
 
-from ingress.elastic import setup_mappings
-
-__version__ = '0.0.1'
+__version__ = '0.1.0'
 
 # Setup logging for the package.  We check here whether the user has overridden
 # the default log level.
@@ -47,4 +45,3 @@ def config_logging(level='INFO'):
 
 
 config_logging(getenv("LOG_LEVEL", "INFO"))
-setup_mappings(getenv("ES_HOST"))

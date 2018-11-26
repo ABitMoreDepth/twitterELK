@@ -5,18 +5,15 @@ Contains the primary entrypoint and exit handling code for the Twitter Ingress t
 import logging
 import sys
 
-#  from concurrent.futures import ThreadPoolExecutor
 from os import environ
 
 import tweepy
 
-#  from ingress.listeners import StdOutListener
-#  from ingress.listeners import ESListener
-from ingress.structures import get_api_instance, get_processor_instance
-from ingress.listeners import QueueListener
-
-#  from ingress.data_processing.processing import DataProcessor
 from ingress.data_processing.processing import PluginBase
+from ingress.elastic import setup_mappings
+from ingress.listeners import QueueListener
+from ingress.structures import get_singleton_instance
+from ingress.data_processing.processing import DataProcessor
 
 LOG = logging.getLogger(__name__)
 
@@ -27,7 +24,10 @@ def shutdown(exit_code=0):
 
     :param exit_code: raise a system exit with the provided exit code.  Defaults to 0.
     """
-    pass
+    LOG.info('Shutting Down.')
+    get_singleton_instance(tweepy.Stream).disconnect()
+    get_singleton_instance(DataProcessor).stop()
+    sys.exit(exit_code)
 
 
 def main():
@@ -47,7 +47,7 @@ def main():
     auth.set_access_token(oauth_key, oauth_secret)
 
     LOG.debug('Creating Stream instance')
-    api = get_api_instance('api', auth=auth, listener=QueueListener())
+    api = get_singleton_instance(tweepy.Stream, auth=auth, listener=QueueListener())
 
     if 'HASHTAGS' in environ:
         tweet_filters = environ['HASHTAGS'].split(',')
@@ -55,18 +55,23 @@ def main():
         tweet_filters = ['#brexit', '#remain', '#leave']
     LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
 
+    index_suffix = '-'.join(tweet_filters).lower().replace('#', '')
+
     PluginBase.import_subclasses()
-    data_processor = get_processor_instance('data_processor')
+    data_processor = get_singleton_instance(DataProcessor)
 
     try:
+        setup_mappings(environ['ES_HOST'], index_suffix)
         api.filter(track=tweet_filters, async=True)
         data_processor.start()
 
     except KeyboardInterrupt:
-        LOG.info('Caught Ctrl+C, Shutting down.')
-        api.disconnect()
-        data_processor.stop()
-        sys.exit(0)
+        LOG.info('Caught Ctrl+C')
+        shutdown()
+
+    except:
+        LOG.error('Caught Exception!', exc_info=True)
+        shutdown(1)
 
 
 if __name__ == '__main__':
