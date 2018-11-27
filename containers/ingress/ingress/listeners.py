@@ -24,7 +24,11 @@ class QueueListener(tweepy.StreamListener):
         This listener is very simplistic, and will simply log the raw data to
         the queue, for other systems to consume from.
         """
-        json_data = json.loads(raw_data)
+        try:
+            json_data = json.loads(raw_data)
+        except (TypeError, json.JSONDecodeError):
+            LOG.error('Encountered issue attempting to parse new data.')
+            return
         #  LOG.debug('Ingress received new raw_data: %s', json_data)
         LOG.debug(
             'Pushing new tweet to queue ready for processing: %s',
