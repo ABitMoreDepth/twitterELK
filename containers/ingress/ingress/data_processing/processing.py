@@ -25,7 +25,6 @@ import typing
 from importlib import import_module
 from os import walk
 from os.path import join, dirname
-#  from os.path import sep as os_separator
 
 from ingress.data_queue import DATA_QUEUE
 from ingress.elastic import map_tweet_to_mapping
@@ -90,10 +89,11 @@ class DataProcessor:
     plugins to the pulled data.
     """
 
-    def __init__(self):
+    def __init__(self, twitter_index):
         self.running = False
         self.data = None
         self.plugins = []
+        self.twitter_index = twitter_index
 
     def start(self):
         """
@@ -152,4 +152,4 @@ class DataProcessor:
         Attempt to store the data into Elasticsearch.
         """
         tweet_doc = map_tweet_to_mapping(self.data)
-        tweet_doc.save()
+        tweet_doc.save(index=self.twitter_index)

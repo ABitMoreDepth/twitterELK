@@ -4,12 +4,11 @@ the Tweepy Stream instance receives from twitter.
 """
 import json
 import logging
-#  import re
+from copy import deepcopy
 
 import tweepy
 
 from ingress.data_queue import DATA_QUEUE
-
 
 LOG = logging.getLogger(__name__)
 
@@ -25,13 +24,16 @@ class QueueListener(tweepy.StreamListener):
         the queue, for other systems to consume from.
         """
         try:
+            tweet_data = {}
             json_data = json.loads(raw_data)
+            tweet_data['raw'] = deepcopy(json_data)
         except (TypeError, json.JSONDecodeError):
             LOG.error('Encountered issue attempting to parse new data.')
             return
         #  LOG.debug('Ingress received new raw_data: %s', json_data)
         LOG.debug(
             'Pushing new tweet to queue ready for processing: %s',
-            json_data.get('text', None)
+            json_data.get('text',
+                          None)
         )
-        DATA_QUEUE.put(json_data)
+        DATA_QUEUE.put(tweet_data)

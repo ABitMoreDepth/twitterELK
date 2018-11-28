@@ -56,20 +56,21 @@ def main():
     LOG.info('Streaming tweets matching these keywords: %s', tweet_filters)
 
     index_suffix = '-'.join(tweet_filters).lower().replace('#', '')
+    twitter_index = 'tweets-{}'.format(index_suffix)
 
     PluginBase.import_subclasses()
-    data_processor = get_singleton_instance(DataProcessor)
+    data_processor = get_singleton_instance(DataProcessor, twitter_index)
 
     try:
-        setup_mappings(environ['ES_HOST'], index_suffix)
-        api.filter(track=tweet_filters, async=True)
+        setup_mappings(index_suffix, environ['ES_HOST'],)
+        api.filter(track=tweet_filters, is_async=True)
         data_processor.start()
 
     except KeyboardInterrupt:
         LOG.info('Caught Ctrl+C')
         shutdown()
 
-    except:
+    except Exception:  # pylint: disable = broad-except
         LOG.error('Caught Exception!', exc_info=True)
         shutdown(1)
 
