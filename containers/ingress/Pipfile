@@ -11,6 +11,7 @@ arrow = "*"
 elasticsearch-dsl = "*"
 better-exceptions = "*"
 textblob = "*"
+tenacity = "*"
 
 [dev-packages]
 pylint = "*"
