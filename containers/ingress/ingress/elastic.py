@@ -22,6 +22,7 @@ from elasticsearch_dsl.connections import connections
 from elasticsearch_dsl.document import DocumentMeta
 
 from ingress.exceptions import InvalidMappingError
+from ingress.structures import get_singleton_instance
 
 LOG = logging.getLogger(__name__)
 
@@ -148,36 +149,35 @@ class Tweet(Document):
             'entities/hashtags',
         ),
         'id': 'id_str',
-        'place': Place,
-        'text': 'text',
-        'user': User,
         'lang': 'lang',
-        'length': 'tweet_length',
         'location': Location,
+        'raw': 'raw',
+        'short_text': 'short_text',
         'sentiment_polarity': 'sentiment_polarity',
         'sentiment_subjectivity': 'sentiment_subjectivity',
+        'text': 'text',
         'timestamp': (
             lambda x: arrow.get(int(x) / 1000).datetime,
-            'timestamp_ms',
+            'raw/timestamp_ms',
         ),
+        'user': User,
     }
-    id = Text()
+    coordinates = GeoPoint()
     created_at = Text()
-    text = Text()
-    length = Integer()
-    truncated = Boolean()
-    user = Object(User)
     geo = Object(dynamic=True)
     geotagged = Boolean()
-    coordinates = GeoPoint()
-    place = Object(Place)
-    full_text = Text()
     hashtags = Text(multi=True)
+    id = Text()
     lang = Keyword(doc_values=True)
-    timestamp = Date()
+    length = Integer()
     location = Object(Location)
-    sentiment_polarity = Float()  # tweet_json['sentiment_polarity'],
-    sentiment_subjectivity = Float()  # tweet_json['sentiment_subjectivity']
+    place = Object(Place)
+    raw = Object(dynamic=True)
+    sentiment_polarity = Float()
+    sentiment_subjectivity = Float()
+    text = Object(dynamic=True)
+    timestamp = Date()
+    user = Object(User)
 
 
 def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingress_mapping):
@@ -266,7 +266,7 @@ def map_tweet_to_mapping(tweet=None, tweet_doc=None, ingress_mapping=Tweet.ingre
         raise InvalidMappingError from exception
 
 
-def setup_mappings(es_host: str = None, index_suffix: str = ''):
+def setup_mappings(twitter_index: str, es_host: str = None):
     """
     Run through the initial setup of the elasticsearch index used to store tweets.
     """
@@ -276,13 +276,19 @@ def setup_mappings(es_host: str = None, index_suffix: str = ''):
 
     connections.create_connection(hosts=[es_host])
 
-    tweet_index = Index('tweets-{}'.format(index_suffix))
+    tweet_index = get_singleton_instance(Index, twitter_index)
+    LOG.info('Storing tweets in %s', tweet_index._name)
     tweet_index.settings(
-        number_of_shards=1,
-        number_of_replicas=0,
+        **{
+            "index.mapping.total_fields.limit": 5000,
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+        }
     )
     tweet_index.document(Tweet)
     LOG.info('Checking if Index %s exists and creating if not', tweet_index._name)
     if not tweet_index.exists():
         LOG.info('Creating new index.')
         tweet_index.create()
+    else:
+        tweet_index.save()
