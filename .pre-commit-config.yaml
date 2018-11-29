@@ -1,12 +1,39 @@
 # See https://pre-commit.com for more information
 # # See https://pre-commit.com/hooks.html for more hooks
+exclude: '^.*\.pdf|.*\.rst$'
 repos:
-  -   repo: "git@github.com:ABitMoreDepth/twitterELK.git"
-      rev: master
-      hooks:
-        -   id: trailing-whitespace
-        -   id: end-of-file-fixer
-        -   id: check-yaml
-        -   id: check-added-large-files
-        -   id: pylint
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: v2.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
 
+  - repo: "https://github.com/pre-commit/mirrors-pylint"
+    rev: v2.2.0
+    hooks:
+      - id: pylint
+
+  - repo: "https://gitlab.com/PyCQA/flake8"
+    rev: master
+    hooks:
+      - id: flake8
+
+  - repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
+    rev: v0.3.3
+    hooks:
+      - id: pep257
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.641  # Use the sha / tag you want to point at
+    hooks:
+      - id: mypy
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 1.10.2
+    hooks:
+      - id: git-check  # Configure in .gitattributes
+        exclude: '^.*\.rst$'
+      - id: shellcheck
