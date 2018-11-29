@@ -18,6 +18,11 @@ class QueueListener(tweepy.StreamListener):
     Listener which consumes tweets from tweepy and pushes them to a queue.
     """
 
+    def __init__(self, ignore_retweets=False, *args, **kwargs):
+        self.ignore_retweets = ignore_retweets
+
+        super().__init__(*args, **kwargs)
+
     def on_data(self, raw_data):
         """
         This listener is very simplistic, and will simply log the raw data to
@@ -26,7 +31,11 @@ class QueueListener(tweepy.StreamListener):
         try:
             tweet_data = {}
             json_data = json.loads(raw_data)
-            tweet_data['raw'] = deepcopy(json_data)
+            if self.ignore_retweets and 'retweeted_status' in json_data:
+                LOG.info('Skipping Retweet')
+                return
+
+            tweet_data['_raw'] = deepcopy(json_data)
         except (TypeError, json.JSONDecodeError):
             LOG.error('Encountered issue attempting to parse new data.')
             return

@@ -35,9 +35,19 @@ def test_get_singleton_happy_case():
 @pytest.mark.parametrize(
     'expected_error,input_class,input_args',
     [
-        (TypeError, None, None),
-        (TypeError, int, 1),
-        (TypeError, Sample, (1,2,3,4,5)),
+        (TypeError,
+         None,
+         None),
+        (TypeError,
+         int,
+         1),
+        (TypeError,
+         Sample,
+         (1,
+          2,
+          3,
+          4,
+          5)),
     ],
 )
 def test_singleton_invalid_inputs(expected_error, input_class, input_args):

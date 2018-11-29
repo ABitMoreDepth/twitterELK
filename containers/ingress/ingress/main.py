@@ -47,7 +47,11 @@ def main():
     auth.set_access_token(oauth_key, oauth_secret)
 
     LOG.debug('Creating Stream instance')
-    api = get_singleton_instance(tweepy.Stream, auth=auth, listener=QueueListener())
+    api = get_singleton_instance(
+        tweepy.Stream,
+        auth=auth,
+        listener=QueueListener(ignore_retweets=True)
+    )
 
     if 'HASHTAGS' in environ:
         tweet_filters = environ['HASHTAGS'].split(',')
@@ -62,7 +66,10 @@ def main():
     data_processor = get_singleton_instance(DataProcessor, twitter_index)
 
     try:
-        setup_mappings(index_suffix, environ['ES_HOST'],)
+        setup_mappings(
+            index_suffix,
+            environ['ES_HOST'],
+        )
         api.filter(track=tweet_filters, is_async=True)
         data_processor.start()
 

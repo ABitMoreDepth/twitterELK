@@ -46,7 +46,7 @@ class GeoCoding(PluginBase):
         geotagged according to success or failure.
         """
         LOG.debug('Attempting to geotag tweet')
-        tweet_location = self.geotagger.resolve_tweet(tweet_json['raw'])
+        tweet_location = self.geotagger.resolve_tweet(tweet_json['_raw'])
 
         tweet_json['geotagged'] = False
         if tweet_location:

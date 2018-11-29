@@ -151,14 +151,14 @@ class Tweet(Document):
         'id': 'id_str',
         'lang': 'lang',
         'location': Location,
-        'raw': 'raw',
+        '_raw': '_raw',
         'short_text': 'short_text',
         'sentiment_polarity': 'sentiment_polarity',
         'sentiment_subjectivity': 'sentiment_subjectivity',
         'text': 'text',
         'timestamp': (
             lambda x: arrow.get(int(x) / 1000).datetime,
-            'raw/timestamp_ms',
+            '_raw/timestamp_ms',
         ),
         'user': User,
     }
@@ -172,7 +172,7 @@ class Tweet(Document):
     length = Integer()
     location = Object(Location)
     place = Object(Place)
-    raw = Object(dynamic=True)
+    _raw = Object(dynamic=True)
     sentiment_polarity = Float()
     sentiment_subjectivity = Float()
     text = Object(dynamic=True)
@@ -277,7 +277,7 @@ def setup_mappings(twitter_index: str, es_host: str = None):
     connections.create_connection(hosts=[es_host])
 
     tweet_index = get_singleton_instance(Index, twitter_index)
-    LOG.info('Storing tweets in %s', tweet_index._name)
+    LOG.info('Storing tweets in %s', twitter_index)
     tweet_index.settings(
         **{
             "index.mapping.total_fields.limit": 5000,
@@ -286,9 +286,10 @@ def setup_mappings(twitter_index: str, es_host: str = None):
         }
     )
     tweet_index.document(Tweet)
-    LOG.info('Checking if Index %s exists and creating if not', tweet_index._name)
+    LOG.info('Checking if Index %s exists and creating if not', twitter_index)
     if not tweet_index.exists():
         LOG.info('Creating new index.')
         tweet_index.create()
     else:
+        LOG.info('Index exists, ensuring its up to date.')
         tweet_index.save()
