@@ -29,6 +29,7 @@ services:
       - "LOG_LEVEL=${LOG_LEVEL:-INFO}"
     depends_on:
       - elasticsearch
+    restart: always
 
   kibana:
     image: "docker.elastic.co/kibana/kibana:6.4.3"
