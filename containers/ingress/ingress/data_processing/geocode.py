@@ -15,16 +15,37 @@ import logging
 
 from carmen import get_resolver
 from carmen.location import LocationEncoder
+import elasticsearch_dsl as es
 
-from ingress.data_processing.processing import PluginBase
+from ingress.structures import PluginBase
 
 LOG = logging.getLogger(__name__)
+
+
+class Location(es.InnerDoc):  # pytlint: disable = too-few-public-methods
+    """
+    InnerDoc mapping of location information embedded within a tweet (This
+    data is created by us during the processing pipeline).
+    """
+    city = es.Keyword(doc_values=True)
+    country = es.Keyword(doc_values=True)
+    county = es.Keyword(doc_values=True)
+    id = es.Text()
+    latitude = es.Text()
+    longitude = es.Text()
+    resolution_method = es.Text()
+    state = es.Keyword(doc_values=True)
 
 
 class GeoCoding(PluginBase):
     """
     Class that will attempt to geotag a tweet.
     """
+    data_schema = {
+        'geotagged': es.Boolean(),
+        'location': es.Object(Location),
+        'coordinates': es.GeoPoint(),
+    }
 
     def __init__(self, *args, **kwargs):
         """
@@ -49,15 +70,18 @@ class GeoCoding(PluginBase):
         tweet_location = self.geotagger.resolve_tweet(tweet_json['_raw'])
 
         tweet_json['geotagged'] = False
+
         if tweet_location:
             LOG.debug('  This tweet includes location information')
             tweet_json['location'] = self.location_resolver.default(tweet_location[1])
 
-            if 'latitude' in tweet_json['location'] and 'longitude' in tweet_json['location']:
+            if 'latitude' in tweet_json['location'] and 'longitude' in tweet_json[
+                    'location']:
                 tweet_json['coordinates'] = {
                     'lat': tweet_json['location']['latitude'],
                     'lon': tweet_json['location']['longitude'],
                 }
+
                 tweet_json['geotagged'] = True
                 LOG.debug('Geotagging completed!')
 

@@ -6,6 +6,7 @@ import json
 import logging
 from copy import deepcopy
 
+import arrow
 import tweepy
 
 from ingress.data_queue import DATA_QUEUE
@@ -29,13 +30,14 @@ class QueueListener(tweepy.StreamListener):
         the queue, for other systems to consume from.
         """
         try:
-            tweet_data = {}
+            tweet = {}
             json_data = json.loads(raw_data)
             if self.ignore_retweets and 'retweeted_status' in json_data:
                 LOG.info('Skipping Retweet')
                 return
 
-            tweet_data['_raw'] = deepcopy(json_data)
+            tweet['_raw'] = deepcopy(json_data)
+            tweet['timestamp'] = arrow.get(int(json_data.get('timestamp_ms')) / 1000).datetime
         except (TypeError, json.JSONDecodeError):
             LOG.error('Encountered issue attempting to parse new data.')
             return
@@ -45,4 +47,4 @@ class QueueListener(tweepy.StreamListener):
             json_data.get('text',
                           None)
         )
-        DATA_QUEUE.put(tweet_data)
+        DATA_QUEUE.put(tweet)

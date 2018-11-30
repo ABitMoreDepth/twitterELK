@@ -3,9 +3,9 @@ This module contains a simple plugin which simply emits tweet data to the consol
 """
 
 import logging
-import json
+from pprint import pformat
 
-from ingress.data_processing.processing import PluginBase
+from ingress.structures import PluginBase
 
 
 LOG = logging.getLogger(__name__)
@@ -21,6 +21,6 @@ class Console(PluginBase):
         """
         Log the tweet to the console.
         """
-        LOG.debug('Received new tweet data: %s', json.dumps(tweet_json, indent=4))
+        LOG.debug('Received new tweet data: %s', pformat(tweet_json, indent=4))
 
         return tweet_json

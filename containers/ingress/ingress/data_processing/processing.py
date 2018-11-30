@@ -16,71 +16,16 @@ application.
 Credit to Mark Auty for the intial concept surrounding __subclasses__ and some
 sample code that makes this pattern viable.
 """
-import inspect
 import logging
 import queue
-import sys
-import typing
 
-from importlib import import_module
-from os import walk
-from os.path import join, dirname
+import elasticsearch_dsl as es
 
 from ingress.data_queue import DATA_QUEUE
-from ingress.elastic import map_tweet_to_mapping
+from ingress.helpers import find_subclasses
+from ingress.structures import PluginBase
 
 LOG = logging.getLogger(__name__)
-
-TypeVar = typing.TypeVar('TypeVar', bound=typing.Type)
-
-
-def find_subclasses(cls: TypeVar) -> typing.Generator[TypeVar, None, None]:
-    """
-        Recursively returns all subclasses of the given class.
-    """
-    if not inspect.isclass(cls):
-        raise TypeError('cls must be a valid class: {}'.format(cls))
-
-    for class_ in cls.__subclasses__():
-        yield class_
-        for return_value in find_subclasses(class_):
-            yield return_value
-
-
-class PluginBase:
-    """
-    Base class for data analysis code.  Any code inheriting from this class
-    should overwrite the _process_order value in order to be executed at the
-    proper time in the processing cycle.
-    """
-    process_order = 100
-
-    def process_tweet(self, tweet_json=None):
-        """
-        Stub method to be overwritten by subclasses, should either return a
-        JSON-compatible object, or return None to indicate completion of the
-        processing chain.
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def import_subclasses():
-        """
-        Iterate through plugins directory and attempt to load in any plugin
-        files.  Plugin files are located in the data_processing directory and
-        are python files aside from processing.py.
-        """
-        for _, _, file_names in walk(join(dirname(__file__))):
-            for file_name in file_names:
-                if (file_name.endswith('.py') and not file_name.startswith('processing')
-                        and not file_name.startswith('__')):
-                    module_path = 'ingress.data_processing.{}'.format(file_name).rstrip('.py')
-                    if module_path not in sys.modules:
-                        try:
-                            LOG.debug('attempting to import: %s', module_path)
-                            import_module(module_path)
-                        except ImportError as error:
-                            LOG.error(str(error), exc_info=True)
 
 
 class DataProcessor:
@@ -151,5 +96,10 @@ class DataProcessor:
         """
         Attempt to store the data into Elasticsearch.
         """
-        tweet_doc = map_tweet_to_mapping(self.data)
-        tweet_doc.save(index=self.twitter_index)
+        es_connection = es.connections.get_connection()
+        es_connection.create(
+            body=self.data,
+            doc_type='doc',
+            id=self.data['_raw']['id_str'],
+            index=self.twitter_index,
+        )
