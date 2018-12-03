@@ -20,6 +20,7 @@ ipython = "*"
 ipdb = "*"
 "flake8" = "*"
 pytest-coverage = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.6"
