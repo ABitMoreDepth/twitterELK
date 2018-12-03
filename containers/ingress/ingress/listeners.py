@@ -9,7 +9,7 @@ from copy import deepcopy
 import arrow
 import tweepy
 
-from ingress.data_queue import DATA_QUEUE
+from ingress.structures import DATA_QUEUE
 
 LOG = logging.getLogger(__name__)
 

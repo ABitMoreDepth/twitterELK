@@ -21,9 +21,8 @@ import queue
 
 import elasticsearch_dsl as es
 
-from ingress.data_queue import DATA_QUEUE
 from ingress.helpers import find_subclasses
-from ingress.structures import PluginBase
+from ingress.structures import DATA_QUEUE, PluginBase
 
 LOG = logging.getLogger(__name__)
 

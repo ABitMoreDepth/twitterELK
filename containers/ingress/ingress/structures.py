@@ -8,13 +8,13 @@ import sys
 from importlib import import_module
 from os import walk
 from os.path import join, dirname, normpath
-
-#  import elasticsearch_dsl as es
+from queue import Queue
 
 
 LOG = logging.getLogger(__name__)
 #  SINGLETON_CACHE = weakref.WeakValueDictionary()
 SINGLETON_CACHE = dict()
+DATA_QUEUE = Queue()
 
 
 class PluginBase:

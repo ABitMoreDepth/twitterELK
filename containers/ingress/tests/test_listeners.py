@@ -6,7 +6,7 @@ import json
 import pytest
 
 import ingress.listeners as il
-from ingress.data_queue import DATA_QUEUE
+from ingress.structures import DATA_QUEUE
 
 
 def test_listener_queue_push_happy():
