@@ -18,6 +18,7 @@ sample code that makes this pattern viable.
 """
 import logging
 import queue
+from typing import Any, Dict, List, cast
 
 import elasticsearch_dsl as es
 
@@ -33,13 +34,13 @@ class DataProcessor:
     plugins to the pulled data.
     """
 
-    def __init__(self, twitter_index):
+    def __init__(self, twitter_index: str) -> None:
         self.running = False
-        self.data = None
-        self.plugins = []
+        self.data: Dict[str, Any] = {}
+        self.plugins: List[PluginBase] = []
         self.twitter_index = twitter_index
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the processing loop.
         """
@@ -47,13 +48,13 @@ class DataProcessor:
         self.running = True
         self.retrieve_data()
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the processing loop.
         """
         self.running = False
 
-    def retrieve_data(self, timeout=0.01):
+    def retrieve_data(self, timeout=0.01) -> None:
         """
         Sit in a loop and block the current thread whilst waiting for data to
         get pushed into the queue.  This can be cancelled by setting the
@@ -63,12 +64,12 @@ class DataProcessor:
             try:
                 self.data = DATA_QUEUE.get(timeout=timeout)
                 LOG.debug('Retrieved new data from the queue to process.')
-                if self.data is not None:
+                if self.data:
                     self.process_data()
             except queue.Empty:
                 continue
 
-    def process_data(self):
+    def process_data(self) -> None:
         """
         Iterate through all identified plugins and process tweet data
         accordingly.
@@ -84,14 +85,15 @@ class DataProcessor:
 
         for plugin in self.plugins:
             LOG.debug('Processing data with %s plugin.', plugin)
-            self.data = plugin.process_tweet(self.data)
+            #  self.data = plugin.process_tweet(self.data)
+            self.data = cast(Dict[str, Any], plugin.process_tweet(self.data))
 
         if self.data:
             LOG.debug('Attempting to store data')
             self.store_data()
             LOG.debug('Data successfully stored')
 
-    def store_data(self):
+    def store_data(self) -> None:
         """
         Attempt to store the data into Elasticsearch.
         """

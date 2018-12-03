@@ -5,6 +5,7 @@ analysis out of the box.  This plugin will attempt to create sentiment scores
 when passed tweet information.
 """
 import logging
+from typing import Any, Dict, cast
 
 from nltk import download as nltk_download
 from nltk.sentiment import SentimentIntensityAnalyzer
@@ -43,7 +44,7 @@ class SentimentAnalysis(PluginBase):
     """
     data_schema = {"text": es.Object(Text)}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
 
         # Ensure we have the various corpora that we need for analysis works.
         text_blob_download()
@@ -54,7 +55,7 @@ class SentimentAnalysis(PluginBase):
 
         super().__init__(*args, **kwargs)
 
-    def process_tweet(self, tweet_json=None):
+    def process_tweet(self, tweet_json: Dict[str, Any]) -> Dict[str, Any]:
         """
         Attempt to analyse sentiment of the given tweet data.
         """
@@ -63,7 +64,7 @@ class SentimentAnalysis(PluginBase):
         if not tweet_json:
             return tweet_json
 
-        text_processing = {}
+        text_processing: Dict = {}
         text_processing['short_text'] = tweet_json['_raw']['text']
         text_processing['truncated'] = tweet_json['_raw']['truncated']
         if text_processing['truncated']:
@@ -77,7 +78,8 @@ class SentimentAnalysis(PluginBase):
             return tweet_json
 
         try:
-            blob_language = tweet_json.get('_raw').get('lang')
+            raw_tweet: Dict[str, Any] = cast(Dict[str, Any], tweet_json.get('_raw'))
+            blob_language = raw_tweet.get('lang')
             if blob_language not in ('en', 'und'):
                 LOG.debug('Attempting to translate from %s to English', blob_language)
                 # We make use of the Tenacity retry library here to simplify

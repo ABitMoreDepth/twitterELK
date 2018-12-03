@@ -17,7 +17,7 @@ from ingress.structures import PluginBase
 LOG = logging.getLogger(__name__)
 
 
-def shutdown(exit_code=0):
+def shutdown(exit_code=0) -> None:
     """
     Safely close down the ingress application.
 
@@ -29,7 +29,7 @@ def shutdown(exit_code=0):
     sys.exit(exit_code)
 
 
-def main():
+def main() -> None:
     """
     Primary entrypoint to the Twitter Ingress tool.  Sets up access to twitter
     based on secrets stored locally on the filesystem and connects to twitter
@@ -37,10 +37,10 @@ def main():
     """
 
     LOG.debug('Loading twitter authentication confifg')
-    consumer_key = environ['CONSUMER_KEY']
-    consumer_secret = environ['CONSUMER_SECRET']
-    oauth_key = environ['OAUTH_KEY']
-    oauth_secret = environ['OAUTH_SECRET']
+    consumer_key: str = environ['CONSUMER_KEY']
+    consumer_secret: str = environ['CONSUMER_SECRET']
+    oauth_key: str = environ['OAUTH_KEY']
+    oauth_secret: str = environ['OAUTH_SECRET']
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(oauth_key, oauth_secret)

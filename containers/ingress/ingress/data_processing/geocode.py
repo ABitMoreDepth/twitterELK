@@ -12,6 +12,7 @@ The final step will be to geocode the location information returned from this
 module.
 """
 import logging
+from typing import Any, Dict
 
 from carmen import get_resolver
 from carmen.location import LocationEncoder
@@ -47,7 +48,7 @@ class GeoCoding(PluginBase):
         'coordinates': es.GeoPoint(),
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         Setup Carmen geotagging options alongside any other instance
         initialisation done by super.
@@ -59,7 +60,7 @@ class GeoCoding(PluginBase):
 
         super().__init__(*args, **kwargs)
 
-    def process_tweet(self, tweet_json=None):
+    def process_tweet(self, tweet_json: Dict[str, Any]) -> Dict[str, Any]:
         """
         Attempt to geotag the tweet data.
 
@@ -75,8 +76,7 @@ class GeoCoding(PluginBase):
             LOG.debug('  This tweet includes location information')
             tweet_json['location'] = self.location_resolver.default(tweet_location[1])
 
-            if 'latitude' in tweet_json['location'] and 'longitude' in tweet_json[
-                    'location']:
+            if 'latitude' in tweet_json['location'] and 'longitude' in tweet_json['location']:
                 tweet_json['coordinates'] = {
                     'lat': tweet_json['location']['latitude'],
                     'lon': tweet_json['location']['longitude'],

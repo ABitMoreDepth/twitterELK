@@ -2,6 +2,7 @@
 Container module which provides various data structures and globally useful systems.
 """
 import logging
+from typing import Any, Dict, Union
 import sys
 #  import weakref
 
@@ -10,11 +11,10 @@ from os import walk
 from os.path import join, dirname, normpath
 from queue import Queue
 
-
 LOG = logging.getLogger(__name__)
-#  SINGLETON_CACHE = weakref.WeakValueDictionary()
-SINGLETON_CACHE = dict()
-DATA_QUEUE = Queue()
+#  SINGLETON_CACHE: Dict = weakref.WeakValueDictionary()
+SINGLETON_CACHE: Dict = dict()
+DATA_QUEUE: Queue = Queue()
 
 
 class PluginBase:
@@ -23,10 +23,10 @@ class PluginBase:
     should overwrite the _process_order value in order to be executed at the
     proper time in the processing cycle.
     """
-    process_order = 100
-    data_schema = {}
+    process_order: int = 100
+    data_schema: Dict = {}
 
-    def process_tweet(self, tweet_json=None):
+    def process_tweet(self, tweet_json: Dict[str, Any]) -> Union[Dict[str, Any], None]:
         """
         Stub method to be overwritten by subclasses, should either return a
         JSON-compatible object, or return None to indicate completion of the
@@ -35,7 +35,7 @@ class PluginBase:
         raise NotImplementedError
 
     @staticmethod
-    def import_subclasses():
+    def import_subclasses() -> None:
         """
         Iterate through plugins directory and attempt to load in any plugin
         files.  Plugin files are located in the data_processing directory and

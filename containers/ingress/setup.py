@@ -1,4 +1,8 @@
+"""
+Setuptools file to support the Ingress tool.
+"""
 from io import open
+from typing import List
 
 from setuptools import find_packages, setup
 
@@ -13,7 +17,7 @@ with open('ingress/__init__.py', 'r') as f:
 with open('README.rst', 'r', encoding='utf-8') as f:
     README = f.read()
 
-REQUIRES = []
+REQUIRES: List = []
 
 setup(
     name='ingress',

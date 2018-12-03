@@ -3,6 +3,7 @@ This module contains a simple plugin which simply emits tweet data to the consol
 """
 
 import logging
+from typing import Any, Dict
 from pprint import pformat
 
 from ingress.structures import PluginBase
@@ -17,7 +18,7 @@ class Console(PluginBase):
     """
     process_order = 10
 
-    def process_tweet(self, tweet_json=None):
+    def process_tweet(self, tweet_json: Dict[str, Any]) -> Dict[str, Any]:
         """
         Log the tweet to the console.
         """

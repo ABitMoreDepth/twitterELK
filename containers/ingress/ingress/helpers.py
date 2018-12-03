@@ -2,17 +2,16 @@
 Convinience functions that don't belong to a specific class end up here.
 """
 import logging
-import typing
 import inspect
+
+from typing import Any, Dict, Generator, Type
 
 import elasticsearch_dsl as es
 
-from ingress.structures import (PluginBase, SINGLETON_CACHE)
-from ingress.exceptions import InvalidMappingError
+from ingress.structures import PluginBase, SINGLETON_CACHE
 
 
 LOG = logging.getLogger(__name__)
-TypeVar = typing.TypeVar('TypeVar', bound=typing.Type)
 
 
 def get_singleton_instance(obj_type, *args, **kwargs):
@@ -63,11 +62,15 @@ def setup_mappings(twitter_index: str, es_host: str = None):
         tweet_index.save()
 
 
-def aggregate_data_schema(base_class, include_defaults: bool = True) -> dict:
+def aggregate_data_schema(
+        base_class: Type,
+        include_defaults: bool = True,
+) -> Dict[str,
+          Any]:
     """
     Iterate through imported plugins and create an ingress mapping to process the data with.
     """
-    mapping = {}
+    mapping: Dict = {}
     for subclass in find_subclasses(base_class):
         subclass_data_schema = None
         try:
@@ -84,7 +87,8 @@ def aggregate_data_schema(base_class, include_defaults: bool = True) -> dict:
     return mapping
 
 
-def find_subclasses(cls: TypeVar) -> typing.Generator[TypeVar, None, None]:
+#  def find_subclasses(cls: Type) -> Iterator[Type[PluginBase]]:
+def find_subclasses(cls: Type) -> Generator[Type, None, None]:
     """
         Recursively returns all subclasses of the given class.
     """
