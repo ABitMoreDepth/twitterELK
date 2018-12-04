@@ -1,9 +1,11 @@
 """
-Module containing a sentiment analysis plugin.  Based on the TextBlob library
-(itself based upon the indomitable NLTK Libraries), which provides sentiment
-analysis out of the box.  This plugin will attempt to create sentiment scores
-when passed tweet information.
+Module containing a sentiment analysis plugin.
+
+Based on the TextBlob library (itself based upon the indomitable NLTK
+Libraries), which provides sentiment analysis out of the box.  This plugin will
+attempt to create sentiment scores when passed tweet information.
 """
+
 import logging
 from typing import Any, Dict, cast
 
@@ -22,9 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Text(es.InnerDoc):
-    """
-    Simple Elasticsearch DSL mapping of the text data this plugin will return.
-    """
+    """Simple Elasticsearch DSL mapping of the text data this plugin will return."""
+
     full_text = es.Text()
     short_text = es.Text()
     truncated = es.Boolean()
@@ -39,13 +40,12 @@ class Text(es.InnerDoc):
 
 
 class SentimentAnalysis(PluginBase):
-    """
-    Class implementing a sentiment analysis plugin.  Wraps the TextBlob library.
-    """
+    """Class implementing a sentiment analysis plugin.  Wraps the TextBlob library."""
+
     data_schema = {"text": es.Object(Text)}
 
     def __init__(self, *args, **kwargs) -> None:
-
+        """Initialise SentimentAnalysis instance, ensure we have downloaded required data."""
         # Ensure we have the various corpora that we need for analysis works.
         text_blob_download()
         nltk_download('vader_lexicon')
@@ -53,12 +53,10 @@ class SentimentAnalysis(PluginBase):
         # Initialise the Vader sentiment analysis tool
         self.analyser = SentimentIntensityAnalyzer()
 
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # type: ignore
 
     def process_tweet(self, tweet_json: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Attempt to analyse sentiment of the given tweet data.
-        """
+        """Attempt to analyse sentiment of the given tweet data."""
         # pull either the tweet text, or the tweet full text depending on
         # whether the tweet was truncated
         if not tweet_json:

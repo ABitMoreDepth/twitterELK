@@ -1,7 +1,8 @@
-""" Initial setup for the ingress package.  Includes base logging setup and
+"""Initial setup for the ingress package.
+
+Includes base logging setup and
 Elasticsearch connection establishment.
 """
-
 import logging
 from os import getenv
 
@@ -16,7 +17,7 @@ LOG_FORMAT = (
 
 
 def config_logging(level='INFO'):
-    """ Noddy function that will attempt to configure logging to the user desired level
+    """Noddy function that will attempt to configure logging to the user desired level.
 
     :param level: The log level name to which we should attempt to log at.
     """

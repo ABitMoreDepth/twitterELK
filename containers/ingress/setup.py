@@ -1,6 +1,5 @@
-"""
-Setuptools file to support the Ingress tool.
-"""
+"""Setuptools file to support the Ingress tool."""
+
 from io import open
 from typing import List
 

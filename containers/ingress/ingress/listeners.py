@@ -1,7 +1,9 @@
 """
-Module contains Tweepy listener classes, which are used to process tweets that
-the Tweepy Stream instance receives from twitter.
+Module contains Tweepy listener classes.
+
+These are used to process tweets that the Tweepy Stream instance receives from twitter.
 """
+
 import json
 import logging
 from copy import deepcopy
@@ -17,18 +19,20 @@ LOG = logging.getLogger(__name__)
 class QueueListener(tweepy.StreamListener):
     """
     Listener which consumes tweets from tweepy and pushes them to a queue.
+
+    This listener merely creates a base dict with all the raw data received
+    from twitter serialised into python data structures, and pushes it to a
+    Queue, for further processing elsewhere.
     """
 
     def __init__(self, ignore_retweets=False, *args, **kwargs):
+        """Initialise instance variables."""
         self.ignore_retweets = ignore_retweets
 
         super().__init__(*args, **kwargs)
 
     def on_data(self, raw_data):
-        """
-        This listener is very simplistic, and will simply log the raw data to
-        the queue, for other systems to consume from.
-        """
+        """Called when a new tweet is passed to us, serialise and push to a queue."""
         try:
             tweet = {}
             json_data = json.loads(raw_data)

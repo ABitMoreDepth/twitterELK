@@ -1,6 +1,5 @@
-"""
-Convinience functions that don't belong to a specific class end up here.
-"""
+"""Convinience functions that don't belong to a specific class end up here."""
+
 import logging
 import inspect
 
@@ -10,12 +9,11 @@ import elasticsearch_dsl as es
 
 from ingress.structures import PluginBase, SINGLETON_CACHE
 
-
 LOG = logging.getLogger(__name__)
 
 
 def get_singleton_instance(obj_type, *args, **kwargs):
-    """ Factory that produces a cached Tweepy Stream instance."""
+    """Factory that produces a cached Tweepy Stream instance."""
     LOG.debug('Attempting to retrieve cached %s', obj_type)
     if obj_type not in SINGLETON_CACHE:
         LOG.debug('%s not found, instantiating new instance', obj_type)
@@ -29,9 +27,7 @@ def get_singleton_instance(obj_type, *args, **kwargs):
 
 
 def setup_mappings(twitter_index: str, es_host: str = None):
-    """
-    Run through the initial setup of the elasticsearch index used to store tweets.
-    """
+    """Run through the initial setup of the elasticsearch index used to store tweets."""
     if es_host is None:
         LOG.warning('No Elasticsearch connection setup')
         return
@@ -67,9 +63,7 @@ def aggregate_data_schema(
         include_defaults: bool = True,
 ) -> Dict[str,
           Any]:
-    """
-    Iterate through imported plugins and create an ingress mapping to process the data with.
-    """
+    """Iterate through imported plugins and create an ingress mapping to process the data with."""
     mapping: Dict = {}
     for subclass in find_subclasses(base_class):
         subclass_data_schema = None
@@ -87,11 +81,8 @@ def aggregate_data_schema(
     return mapping
 
 
-#  def find_subclasses(cls: Type) -> Iterator[Type[PluginBase]]:
 def find_subclasses(cls: Type) -> Generator[Type, None, None]:
-    """
-        Recursively returns all subclasses of the given class.
-    """
+    """Recursively returns all subclasses of the given class."""
     if not inspect.isclass(cls):
         raise TypeError('cls must be a valid class: {}'.format(cls))
 

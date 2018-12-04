@@ -25,9 +25,11 @@ LOG = logging.getLogger(__name__)
 
 class Location(es.InnerDoc):  # pytlint: disable = too-few-public-methods
     """
-    InnerDoc mapping of location information embedded within a tweet (This
-    data is created by us during the processing pipeline).
+    InnerDoc mapping of location information embedded within a tweet.
+
+    This data is created by us during the processing pipeline.
     """
+
     city = es.Keyword(doc_values=True)
     country = es.Keyword(doc_values=True)
     county = es.Keyword(doc_values=True)
@@ -39,9 +41,8 @@ class Location(es.InnerDoc):  # pytlint: disable = too-few-public-methods
 
 
 class GeoCoding(PluginBase):
-    """
-    Class that will attempt to geotag a tweet.
-    """
+    """Class that will attempt to geotag a tweet."""
+
     data_schema = {
         'geotagged': es.Boolean(),
         'location': es.Object(Location),
@@ -49,16 +50,13 @@ class GeoCoding(PluginBase):
     }
 
     def __init__(self, *args, **kwargs) -> None:
-        """
-        Setup Carmen geotagging options alongside any other instance
-        initialisation done by super.
-        """
+        """Setup Carmen geotagging options, then init super."""
         resolver_options = {'place': {'allow_unknown_locations': True}}
         self.geotagger = get_resolver(options=resolver_options)
         self.geotagger.load_locations()
         self.location_resolver = LocationEncoder()
 
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # type: ignore
 
     def process_tweet(self, tweet_json: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -1,6 +1,4 @@
-"""
-Contains the primary entrypoint and exit handling code for the Twitter Ingress tooling.
-"""
+"""Contains the primary entrypoint and exit handling code for the Twitter Ingress tooling."""
 
 import logging
 import sys
@@ -31,11 +29,11 @@ def shutdown(exit_code=0) -> None:
 
 def main() -> None:
     """
-    Primary entrypoint to the Twitter Ingress tool.  Sets up access to twitter
-    based on secrets stored locally on the filesystem and connects to twitter
-    to start consuming tweets.
-    """
+    Primary entrypoint to the Twitter Ingress tool.
 
+    Sets up access to twitter based on secrets stored locally on the filesystem
+    and connects to twitter to start consuming tweets.
+    """
     LOG.debug('Loading twitter authentication confifg')
     consumer_key: str = environ['CONSUMER_KEY']
     consumer_secret: str = environ['CONSUMER_SECRET']
