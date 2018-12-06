@@ -8,9 +8,9 @@ from os import environ
 import tweepy
 
 from ingress.data_processing.processing import DataProcessor
-from ingress.helpers import get_singleton_instance, setup_mappings
+from ingress.utils import get_singleton_instance, setup_mappings
 from ingress.listeners import QueueListener
-from ingress.structures import PluginBase
+from ingress.structures import PluginBase, DATA_QUEUE
 
 LOG = logging.getLogger(__name__)
 
@@ -60,7 +60,11 @@ def main() -> None:
     twitter_index = 'tweets-{}'.format(index_suffix)
 
     PluginBase.import_subclasses()
-    data_processor = get_singleton_instance(DataProcessor, twitter_index)
+    data_processor = get_singleton_instance(
+        DataProcessor,
+        twitter_index=twitter_index,
+        queue=DATA_QUEUE,
+    )
 
     try:
         setup_mappings(

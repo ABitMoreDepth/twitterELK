@@ -62,11 +62,15 @@ class SentimentAnalysis(PluginBase):
         if not tweet_json:
             return tweet_json
 
+        raw_tweet: Dict[str, Any] = cast(Dict[str, Any], tweet_json.get('_raw'))
+        if not raw_tweet:
+            return tweet_json
+
         text_processing: Dict = {}
-        text_processing['short_text'] = tweet_json['_raw']['text']
-        text_processing['truncated'] = tweet_json['_raw']['truncated']
+        text_processing['short_text'] = raw_tweet['text']
+        text_processing['truncated'] = raw_tweet['truncated']
         if text_processing['truncated']:
-            text_processing['full_text'] = tweet_json['_raw']['extended_tweet']['full_text']
+            text_processing['full_text'] = raw_tweet['extended_tweet']['full_text']
 
         blob = TextBlob(
             text_processing['full_text']
@@ -76,9 +80,8 @@ class SentimentAnalysis(PluginBase):
             return tweet_json
 
         try:
-            raw_tweet: Dict[str, Any] = cast(Dict[str, Any], tweet_json.get('_raw'))
             blob_language = raw_tweet.get('lang')
-            if blob_language not in ('en', 'und'):
+            if blob_language not in ('en', 'und', None):
                 LOG.debug('Attempting to translate from %s to English', blob_language)
                 # We make use of the Tenacity retry library here to simplify
                 # repeating a function call, however the default implementation
@@ -124,7 +127,7 @@ class SentimentAnalysis(PluginBase):
             text_processing['pattern_polarity'],
             text_processing['pattern_subjectivity'],
             text_processing['tweet_length'],
-            tweet_json['_raw']['lang']
+            raw_tweet['lang']
         )
 
         tweet_json['text'] = text_processing

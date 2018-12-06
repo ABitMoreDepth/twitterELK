@@ -1,60 +1,59 @@
-"""
-Unit tests for the ingress.elastic module.
-"""
-import attr
+"""Unit tests for the ingress.structures module."""
+
+from unittest.mock import create_autospec, call
+
 import pytest
 
-import ingress.structures as IS
+import ingress.structures as is_
 
 
-@attr.s
-class Sample:  # pylint: disable = too-few-public-methods
+def test_plugin_base_import_subclasses(monkeypatch):
+    """Verify that we attempt to import the correct files when importing plugins.
+
+    We should correctly ignore files that start with `__`, or the `processing.py` file.
     """
-    Simple data-structure class to use with the singleton method to retrieve the same instance.
+    mock_os_walk = create_autospec(is_.walk)
+    sample_files = [
+        (
+            None,
+            None,
+            [
+                "__nothing.py",
+                "thing1.py",
+                "thing1.py.something",
+                "thing1.py@something",
+                "geocode.py@neomake_32242_610",
+                "thing2.py",
+                "thing3.py",
+                "thing4.py",
+            ],
+        )
+    ]
+    mock_os_walk.return_value = iter(sample_files)
+    monkeypatch.setattr('ingress.structures.walk', mock_os_walk)
+
+    mock_import_module = create_autospec(is_.import_module)
+    monkeypatch.setattr('ingress.structures.import_module', mock_import_module)
+
+    is_.PluginBase.import_subclasses()
+
+    print(mock_import_module.call_args_list)
+    expected_call_list = [
+        call('ingress.data_processing.{}'.format(filename))
+        for filename in ('thing1',
+                         'thing2',
+                         'thing3',
+                         'thing4')
+    ]
+
+    assert mock_import_module.call_args_list == expected_call_list
+
+
+def test_plugin_base_raises_process_tweet():
+    """Ensure that PluginBase.process_tweet is a pure function.
+
+    i.e. that it will raise a NotImplementedError if called directly.
     """
-    word = attr.ib()
-    number_list = attr.ib()
-
-
-def test_get_singleton_happy_case():
-    """
-    Verify that we actually get the same instance of a class back when
-    requesting an instance of the same type twice.
-    """
-
-    obj_one = IS.get_singleton_instance(Sample, 'Hello, World!', (1, 2))
-    obj_two = IS.get_singleton_instance(Sample, 'Hello, World!', (1, 2))
-    obj_three = IS.get_singleton_instance(Sample)
-    # Whilst retrieving the same instance of something, there's no actual issue
-    # with changing that instances state.
-    obj_four = IS.get_singleton_instance(Sample, 'something else')
-
-    assert obj_one is obj_two is obj_three is obj_four
-
-
-@pytest.mark.parametrize(
-    'expected_error,input_class,input_args',
-    [
-        (TypeError,
-         None,
-         None),
-        (TypeError,
-         int,
-         1),
-        (TypeError,
-         Sample,
-         (1,
-          2,
-          3,
-          4,
-          5)),
-    ],
-)
-def test_singleton_invalid_inputs(expected_error, input_class, input_args):
-    """
-    Verify that we get the correct errors when passing nonsensical inputs to
-    our singleton factory.
-    """
-
-    with pytest.raises(expected_error):
-        IS.get_singleton_instance(input_class, input_args)
+    with pytest.raises(NotImplementedError):
+        sample = is_.PluginBase()
+        sample.process_tweet('')

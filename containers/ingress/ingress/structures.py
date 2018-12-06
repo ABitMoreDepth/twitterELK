@@ -48,9 +48,17 @@ class PluginBase:
         LOG.debug('Plugin Directory located at: %s', plugin_path)
         for _, _, file_names in walk(plugin_path):
             for file_name in file_names:
-                if (file_name.endswith('.py') and not file_name.startswith('processing')
-                        and not file_name.startswith('__')):
+                LOG.debug('Processing file: %s', file_name)
+                if all((
+                        file_name.endswith('.py'),
+                        not file_name.startswith('processing'),
+                        not file_name.startswith('__'),
+                        # Shouldn't be needed in prod, dev sometimes includes
+                        # linter partials containing @'s
+                        '@' not in file_name,
+                )):
                     module_path = 'ingress.data_processing.{}'.format(file_name).rstrip('.py')
+                    LOG.debug('%s in sys.modules? -> %s', module_path, module_path in sys.modules)
                     if module_path not in sys.modules:
                         try:
                             LOG.debug('attempting to import: %s', module_path)

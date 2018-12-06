@@ -13,6 +13,7 @@ module.
 """
 import logging
 from typing import Any, Dict
+import warnings
 
 from carmen import get_resolver
 from carmen.location import LocationEncoder
@@ -51,10 +52,14 @@ class GeoCoding(PluginBase):
 
     def __init__(self, *args, **kwargs) -> None:
         """Setup Carmen geotagging options, then init super."""
-        resolver_options = {'place': {'allow_unknown_locations': True}}
-        self.geotagger = get_resolver(options=resolver_options)
-        self.geotagger.load_locations()
-        self.location_resolver = LocationEncoder()
+        with warnings.catch_warnings():
+            # The default setup of carmen appears to raise several warnings, we
+            # suppress them with the catch_warnings context manager.
+            warnings.simplefilter("ignore")
+            resolver_options = {'place': {'allow_unknown_locations': True}}
+            self.geotagger = get_resolver(options=resolver_options)
+            self.geotagger.load_locations()
+            self.location_resolver = LocationEncoder()
 
         super().__init__(*args, **kwargs)  # type: ignore
 

@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 
 def get_singleton_instance(obj_type, *args, **kwargs):
-    """Factory that produces a cached Tweepy Stream instance."""
+    """Factory that produces a cached class instances."""
     LOG.debug('Attempting to retrieve cached %s', obj_type)
     if obj_type not in SINGLETON_CACHE:
         LOG.debug('%s not found, instantiating new instance', obj_type)

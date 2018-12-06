@@ -41,6 +41,9 @@ class QueueListener(tweepy.StreamListener):
                 return
 
             tweet['_raw'] = deepcopy(json_data)
+            # Twitter for some reason gives us time since epoch in miliseconds,
+            # whilst Arrow works off of time in seconds when given an integer,
+            # hence the division by 1000 here.
             tweet['timestamp'] = arrow.get(int(json_data.get('timestamp_ms')) / 1000).datetime
         except (TypeError, json.JSONDecodeError):
             LOG.error('Encountered issue attempting to parse new data.')
