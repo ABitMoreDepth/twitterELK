@@ -27,13 +27,14 @@ class Text(es.InnerDoc):
     """Simple Elasticsearch DSL mapping of the text data this plugin will return."""
 
     full_text = es.Text()
-    short_text = es.Text()
-    truncated = es.Boolean()
     pattern_polarity = es.Float()
     pattern_subjectivity = es.Float()
+    short_text = es.Text()
     translated = es.Text()
+    truncated = es.Boolean()
     tweet_length = es.Integer()
     vader_compound = es.Float()
+    vader_compound_inverted = es.Float()
     vader_negative = es.Float()
     vader_neutral = es.Float()
     vader_positive = es.Float()
@@ -120,6 +121,7 @@ class SentimentAnalysis(PluginBase):
             text_processing['vader_neutral'] = sentiment_scores['neu']
             text_processing['vader_positive'] = sentiment_scores['pos']
             text_processing['vader_compound'] = sentiment_scores['compound']
+            text_processing['vader_compound_inverted'] = sentiment_scores['compound'] * -1
 
         text_processing['tweet_length'] = len(blob.words)
         LOG.info(
