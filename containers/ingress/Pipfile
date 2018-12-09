@@ -1,9 +1,12 @@
 [[source]]
+
 url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+
 [packages]
+
 tweepy = "*"
 ingress = {editable = true, path = "."}
 carmen = "*"
@@ -12,8 +15,12 @@ elasticsearch-dsl = "*"
 better-exceptions = "*"
 textblob = "*"
 tenacity = "*"
+celery = "*"
+flower = "*"
+
 
 [dev-packages]
+
 pylint = "*"
 pytest = "*"
 ipython = "*"
@@ -22,5 +29,7 @@ ipdb = "*"
 pytest-coverage = "*"
 mypy = "*"
 
+
 [requires]
+
 python_version = "3.6"

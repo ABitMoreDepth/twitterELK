@@ -2,6 +2,7 @@ FROM python:3.6-alpine3.6
 
 STOPSIGNAL SIGINT
 
+RUN apk update && apk add -q libbz2
 RUN pip install pipenv
 
 WORKDIR /usr/share/app/
