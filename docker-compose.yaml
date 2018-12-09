@@ -13,11 +13,32 @@ services:
     mem_reservation: 2G
     volumes:
       - "es_data:/usr/share/elasticsearch/data"
+    restart: always
+
+  flower:
+    image: ingress
+    environment:
+      - FLOWERPORT=${FLOWERPORT:-4000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PORT=${PORT:-8000}
+    ports:
+      - 8000:8000
+    restart: always
+    command: [
+      "celery",
+      "-A",
+      "ingress.celery_setup.CELERY",
+      "flower",
+      "-l",
+      "${LOG_LEVEL:-info}",
+      "--port=${FLOWERPORT:-8000}"
+    ]
 
   ingress:
     build:
       context: containers/ingress
       dockerfile: Dockerfile
+    image: ingress
     environment:
       - "ES_HOST=elasticsearch"
       - "CONSUMER_KEY=${CONSUMER_KEY}"
@@ -26,10 +47,37 @@ services:
       - "OAUTH_KEY=${OAUTH_KEY}"
       - "OAUTH_SECRET=${OAUTH_SECRET}"
 
-      - "LOG_LEVEL=${LOG_LEVEL:-INFO}"
+      - "LOG_LEVEL=${LOG_LEVEL:-DEBUG}"
+    volumes:
+      - "./containers/ingress:/usr/share/app"
     depends_on:
       - elasticsearch
     restart: always
+
+  ingress-worker:
+    image: ingress
+    environment:
+      - "ES_HOST=elasticsearch"
+      - "CONSUMER_KEY=${CONSUMER_KEY}"
+      - "CONSUMER_SECRET=${CONSUMER_SECRET}"
+      - "HASHTAGS=${HASHTAGS}"
+      - "OAUTH_KEY=${OAUTH_KEY}"
+      - "OAUTH_SECRET=${OAUTH_SECRET}"
+
+      - "LOG_LEVEL=${LOG_LEVEL:-DEBUG}"
+    restart: always
+    command: [
+      "celery",
+      "worker",
+      "-A",
+      "ingress.celery_setup.CELERY",
+      "-E",
+      "-l",
+      "info"
+    ]
+    volumes:
+      - "./containers/ingress:/usr/share/app"
+
 
   kibana:
     image: "docker.elastic.co/kibana/kibana:6.4.3"
@@ -37,6 +85,26 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
+    restart: always
+
+  rabbitmq:
+    build:
+      context: containers/rabbitmq
+      dockerfile: Dockerfile
+    # image: ${REG_ADDRESS:-localhost:5000}/rabbitmq:${REG_TAG:-latest}
+    environment:
+      - TZ=${TZ:-UTC}
+    ports:
+      - 15672:15672
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /usr/share/zoneinfo/${TZ:-UTC}:/etc/localtime
+      - /usr/share/zoneinfo/${TZ:-UTC}:/usr/share/zoneinfo/${TZ:-UTC}
+    restart: always
+
+  redis:
+    image: redis:latest
+
 
 volumes:
   es_data:
