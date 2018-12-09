@@ -11,7 +11,8 @@ from copy import deepcopy
 import arrow
 import tweepy
 
-from ingress.structures import DATA_QUEUE
+#  from ingress.structures import DATA_QUEUE
+from ingress.celery import process_tweet
 
 LOG = logging.getLogger(__name__)
 
@@ -25,9 +26,10 @@ class QueueListener(tweepy.StreamListener):
     Queue, for further processing elsewhere.
     """
 
-    def __init__(self, ignore_retweets=False, *args, **kwargs):
+    def __init__(self, twitter_index: str, ignore_retweets: bool = False, *args, **kwargs):
         """Initialise instance variables."""
         self.ignore_retweets = ignore_retweets
+        self.twitter_index = twitter_index
 
         super().__init__(*args, **kwargs)
 
@@ -54,4 +56,5 @@ class QueueListener(tweepy.StreamListener):
             json_data.get('text',
                           None)
         )
-        DATA_QUEUE.put(tweet)
+        #  DATA_QUEUE.put(tweet)
+        process_tweet.delay(twitter_index=self.twitter_index, tweet_data=tweet)

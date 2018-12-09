@@ -46,3 +46,4 @@ def config_logging(level='INFO'):
 
 
 config_logging(getenv("LOG_LEVEL", "INFO"))
+ES_CONNECTION_STRING = '{}:{}'.format(getenv('ES_HOST', 'elasticsearch'), getenv('ES_PORT', 9200))

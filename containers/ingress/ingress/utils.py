@@ -26,13 +26,18 @@ def get_singleton_instance(obj_type, *args, **kwargs):
     return object_instance
 
 
+def create_es_connection(es_host: str):
+    """Setup Elasticsearch DB connection."""
+    es.connections.create_connection(hosts=[es_host])
+
+
 def setup_mappings(twitter_index: str, es_host: str = None):
     """Run through the initial setup of the elasticsearch index used to store tweets."""
     if es_host is None:
         LOG.warning('No Elasticsearch connection setup')
         return
 
-    es.connections.create_connection(hosts=[es_host])
+    create_es_connection(es_host)
     mapping_dict = aggregate_data_schema(PluginBase)
     tweet_mapping = es.Mapping('doc')
     for key, value in mapping_dict.items():

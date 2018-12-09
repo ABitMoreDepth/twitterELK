@@ -7,10 +7,9 @@ from os import environ
 
 import tweepy
 
-from ingress.data_processing.processing import DataProcessor
+from ingress import ES_CONNECTION_STRING
 from ingress.utils import get_singleton_instance, setup_mappings
 from ingress.listeners import QueueListener
-from ingress.structures import PluginBase, DATA_QUEUE
 
 LOG = logging.getLogger(__name__)
 
@@ -23,7 +22,6 @@ def shutdown(exit_code=0) -> None:
     """
     LOG.info('Shutting Down.')
     get_singleton_instance(tweepy.Stream).disconnect()
-    get_singleton_instance(DataProcessor).stop()
     sys.exit(exit_code)
 
 
@@ -40,16 +38,6 @@ def main() -> None:
     oauth_key: str = environ['OAUTH_KEY']
     oauth_secret: str = environ['OAUTH_SECRET']
 
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(oauth_key, oauth_secret)
-
-    LOG.debug('Creating Stream instance')
-    api = get_singleton_instance(
-        tweepy.Stream,
-        auth=auth,
-        listener=QueueListener(ignore_retweets=True)
-    )
-
     if 'HASHTAGS' in environ:
         tweet_filters = environ['HASHTAGS'].split(',')
     else:
@@ -59,20 +47,23 @@ def main() -> None:
     index_suffix = '-'.join(tweet_filters).lower().replace('#', '')
     twitter_index = 'tweets-{}'.format(index_suffix)
 
-    PluginBase.import_subclasses()
-    data_processor = get_singleton_instance(
-        DataProcessor,
-        twitter_index=twitter_index,
-        queue=DATA_QUEUE,
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(oauth_key, oauth_secret)
+
+    LOG.debug('Creating Stream instance')
+    api = get_singleton_instance(
+        tweepy.Stream,
+        auth=auth,
+        listener=QueueListener(ignore_retweets=True, twitter_index=twitter_index)
     )
 
     try:
         setup_mappings(
             index_suffix,
-            environ['ES_HOST'],
+            ES_CONNECTION_STRING,
         )
-        api.filter(track=tweet_filters, is_async=True)
-        data_processor.start()
+        LOG.info('Collecting Tweets.')
+        api.filter(track=tweet_filters, is_async=False)
 
     except KeyboardInterrupt:
         LOG.info('Caught Ctrl+C')
