@@ -66,8 +66,7 @@ def setup_mappings(twitter_index: str, es_host: str = None):
 def aggregate_data_schema(
         base_class: Type,
         include_defaults: bool = True,
-) -> Dict[str,
-          Any]:
+) -> Dict[str, Any]:
     """Iterate through imported plugins and create an ingress mapping to process the data with."""
     mapping: Dict = {}
     for subclass in find_subclasses(base_class):

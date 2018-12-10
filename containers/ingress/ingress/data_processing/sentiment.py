@@ -7,7 +7,7 @@ attempt to create sentiment scores when passed tweet information.
 """
 
 import logging
-from typing import Any, Dict, cast
+from typing import Any, cast, Dict, Union
 
 from nltk import download as nltk_download
 from nltk.sentiment import SentimentIntensityAnalyzer
@@ -67,23 +67,52 @@ class SentimentAnalysis(PluginBase):
         if not raw_tweet:
             return tweet_json
 
-        text_processing: Dict = {}
+        text_processing: Dict[str, Any] = {}
         text_processing['short_text'] = raw_tweet['text']
         text_processing['truncated'] = raw_tweet['truncated']
         if text_processing['truncated']:
             text_processing['full_text'] = raw_tweet['extended_tweet']['full_text']
 
-        blob = TextBlob(
+        tweet_text = (
             text_processing['full_text']
             if text_processing['truncated'] else text_processing['short_text']
         )
+
+        text_processing.update(
+            self._blob_process_tweet(
+                tweet_text=tweet_text,
+                tweet_lang=raw_tweet['lang'],
+            )
+        )
+
+        # NLTK Vader sentiment analysis - translated field is created during
+        # the text blob processing.
+        text_processing.update(self._vader_classify(text_processing['translated']))
+
+        LOG.info(
+            'Polarity: %s, Subjectivity: %s, Word Count: %s, Language: %s',
+            text_processing['pattern_polarity'],
+            text_processing['pattern_subjectivity'],
+            text_processing['tweet_length'],
+            raw_tweet['lang']
+        )
+
+        tweet_json['text'] = text_processing
+
+        return tweet_json
+
+    @staticmethod
+    def _blob_process_tweet(tweet_text: str, tweet_lang: str) -> Dict[str, Any]:
+        """Analyse tweet text using the TextBlob class."""
+        text_processing: Dict[str, Union[str, int]] = {}
+
+        blob = TextBlob(tweet_text)
         if not blob:
-            return tweet_json
+            return {}
 
         try:
-            blob_language = raw_tweet.get('lang')
-            if blob_language not in ('en', 'und', None):
-                LOG.debug('Attempting to translate from %s to English', blob_language)
+            if tweet_lang not in ('en', 'und', None):
+                LOG.debug('Attempting to translate from %s to English', tweet_lang)
                 # We make use of the Tenacity retry library here to simplify
                 # repeating a function call, however the default implementation
                 # is a decorator, hence the pair of calls here, which return a
@@ -112,8 +141,15 @@ class SentimentAnalysis(PluginBase):
         text_processing['pattern_polarity'] = blob.sentiment.polarity
         text_processing['pattern_subjectivity'] = blob.sentiment.subjectivity
 
+        text_processing['tweet_length'] = len(blob.words)
+
+        return text_processing
+
+    def _vader_classify(self, tweet_text: str) -> Dict[str, Any]:
+        """Analyse tweet text for sentiment using NLTK Vader Algorithm."""
         # NLTK Vader sentiment analysis.
-        sentiment_scores = self.analyser.polarity_scores(text_processing['translated'])
+        text_processing: Dict[str, float] = {}
+        sentiment_scores = self.analyser.polarity_scores(tweet_text)
         if any(sentiment_scores):
             # Make sure we have something to dump into the output data.
             # {'neg': 0.347, 'neu': 0.653, 'pos': 0.0, 'compound': -0.1511}
@@ -123,15 +159,4 @@ class SentimentAnalysis(PluginBase):
             text_processing['vader_compound'] = sentiment_scores['compound']
             text_processing['vader_compound_inverted'] = sentiment_scores['compound'] * -1
 
-        text_processing['tweet_length'] = len(blob.words)
-        LOG.info(
-            'Polarity: %s, Subjectivity: %s, Word Count: %s, Language: %s',
-            text_processing['pattern_polarity'],
-            text_processing['pattern_subjectivity'],
-            text_processing['tweet_length'],
-            raw_tweet['lang']
-        )
-
-        tweet_json['text'] = text_processing
-
-        return tweet_json
+        return text_processing

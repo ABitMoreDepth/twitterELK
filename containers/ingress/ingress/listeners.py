@@ -50,11 +50,8 @@ class QueueListener(tweepy.StreamListener):
         except (TypeError, json.JSONDecodeError):
             LOG.error('Encountered issue attempting to parse new data.')
             return
-        #  LOG.debug('Ingress received new raw_data: %s', json_data)
         LOG.debug(
             'Pushing new tweet to queue ready for processing: %s',
-            json_data.get('text',
-                          None)
+            json_data.get('text', None)
         )
-        #  DATA_QUEUE.put(tweet)
         process_tweet.delay(twitter_index=self.twitter_index, tweet_data=tweet)
