@@ -27,7 +27,7 @@ services:
     command: [
       "celery",
       "-A",
-      "ingress.celery_setup.CELERY",
+      "ingress.celery.CELERY",
       "flower",
       "-l",
       "${LOG_LEVEL:-info}",
@@ -70,7 +70,7 @@ services:
       "celery",
       "worker",
       "-A",
-      "ingress.celery_setup.CELERY",
+      "ingress.celery.CELERY",
       "-E",
       "-l",
       "info"
