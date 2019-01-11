@@ -15,7 +15,7 @@ and then registering individual instances of various classes, which is
 difficult to make properly extensible without munging around in the
 application.
 
-Credit to Mark Auty for the intial concept surrounding __subclasses__ and some
+Credit to Mike Auty for the intial concept surrounding __subclasses__ and some
 sample code that makes this pattern viable.
 """
 
